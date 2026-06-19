@@ -2,45 +2,34 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Search, MapPin } from "lucide-react";
 import { MobileShell } from "@/components/MobileShell";
+import { searchJobsServer } from "@/lib/api/search.functions";
 
 export const Route = createFileRoute("/jobs")({
   component: JobsPage,
 });
 
+type JobSearchResult = {
+  title: string;
+  content: string;
+  url: string;
+};
+
 function JobsPage() {
-  console.log(
-  "TAVILY:",
-  import.meta.env.VITE_TAVILY_API_KEY
-);
   const [keyword, setKeyword] = useState("AI产品经理");
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<JobSearchResult[]>([]);
 
   const searchJobs = async () => {
     try {
       setLoading(true);
 
-      const res = await fetch(
-        "https://api.tavily.com/search",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            api_key: import.meta.env.VITE_TAVILY_API_KEY,
-            query: `${keyword} 招聘 岗位`,
-            search_depth: "basic",
-            max_results: 5,
-          }),
-        }
-      );
+      const data = await searchJobsServer({
+        data: {
+          keyword,
+        },
+      });
 
-      const data = await res.json();
-
-      console.log(data);
-
-      setResults(data.results || []);
+      setResults(data);
     } catch (err) {
       console.error(err);
       alert("搜索失败");

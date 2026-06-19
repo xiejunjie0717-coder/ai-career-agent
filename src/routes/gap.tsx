@@ -1,76 +1,159 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { ArrowRight, ThumbsUp, AlertTriangle, Lightbulb } from "lucide-react";
+
 import { MobileShell } from "@/components/MobileShell";
-import { Card, PrimaryButton, ProgressBar } from "@/components/ui-primitives";
+import { Card, PrimaryButton, ProgressBar, Tag } from "@/components/ui-primitives";
+import { generateGapReport } from "@/lib/ai";
+import {
+  loadState,
+  saveState,
+  type AgentState,
+  type GapReport,
+} from "@/lib/agent-store";
 
 export const Route = createFileRoute("/gap")({
   head: () => ({ meta: [{ title: "能力差距分析" }] }),
   component: GapPage,
 });
 
-const DIMS = [
-  { k: "产品能力", v: 70 },
-  { k: "AI 能力", v: 35 },
-  { k: "技术能力", v: 55 },
-  { k: "沟通能力", v: 80 },
-  { k: "数据分析", v: 45 },
-];
-
 function GapPage() {
   const navigate = useNavigate();
-  const match = 42;
+  const [state, setState] = useState<AgentState | null>(null);
+
+  useEffect(() => {
+    const current = loadState();
+    let gapReport = current.gapReport;
+
+    if (!gapReport && current.jobProfile && current.abilityProfile) {
+      gapReport = generateGapReport(current.jobProfile, current.abilityProfile);
+      saveState({
+        gapReport,
+        roadmap: null,
+        projects: [],
+        resumeReport: null,
+        interviewReport: null,
+      });
+    }
+
+    setState({ ...current, gapReport });
+  }, []);
+
+  if (!state) return null;
+
+  const report = state.gapReport;
+
+  if (!report) {
+    return (
+      <MobileShell title="能力差距分析" showBack>
+        <Card title="暂时无法生成差距报告">
+          <p className="text-sm text-muted-foreground leading-6">
+            请先完成岗位分析和能力评估，系统需要两份结构化画像才能生成差距报告。
+          </p>
+          <PrimaryButton onClick={() => navigate({ to: "/analysis" })}>
+            返回岗位分析
+          </PrimaryButton>
+        </Card>
+      </MobileShell>
+    );
+  }
+
+  const dimensions = buildDimensions(report);
+  const advantages = state.abilityProfile?.advantages.length
+    ? state.abilityProfile.advantages
+    : report.matchedSkills.map((item) => `已具备岗位要求的“${item}”能力`);
 
   return (
     <MobileShell
       title="能力差距分析"
       showBack
-      footer={<PrimaryButton onClick={() => navigate({ to: "/roadmap" })} icon={<ArrowRight className="h-4 w-4" />}>生成成长路线</PrimaryButton>}
+      footer={
+        <PrimaryButton
+          onClick={() => navigate({ to: "/roadmap" })}
+          icon={<ArrowRight className="h-4 w-4" />}
+        >
+          生成成长路线
+        </PrimaryButton>
+      }
     >
       <div className="space-y-5">
         <Card>
           <div className="flex items-center gap-4">
-            <MatchRing value={match} />
+            <MatchRing value={report.matchScore} />
             <div className="flex-1">
               <div className="text-xs text-muted-foreground">岗位匹配度</div>
-              <div className="text-2xl font-semibold tracking-tight">{match}%</div>
-              <div className="text-xs text-amber-600 mt-1">仍有较大成长空间</div>
+              <div className="text-2xl font-semibold tracking-tight">
+                {report.matchScore}%
+              </div>
+              <div className="text-xs text-amber-600 mt-1">
+                {report.priorityGaps.length
+                  ? `优先补齐 ${report.priorityGaps.length} 项关键差距`
+                  : "当前能力与岗位要求较匹配"}
+              </div>
             </div>
           </div>
         </Card>
 
-        <Card title="能力雷达图" subtitle="基于你的回答与岗位要求对比">
-          <RadarChart />
+        <Card title="核心能力对比" subtitle="基于岗位画像与用户能力画像">
+          <RadarChart dimensions={dimensions} />
           <div className="space-y-2 pt-2">
-            {DIMS.map(d => (
-              <div key={d.k}>
+            {dimensions.map((dimension) => (
+              <div key={dimension.label}>
                 <div className="flex justify-between text-xs mb-1">
-                  <span>{d.k}</span><span className="tabular-nums text-muted-foreground">{d.v}/100</span>
+                  <span>{dimension.label}</span>
+                  <span className="tabular-nums text-muted-foreground">
+                    {dimension.value}/100
+                  </span>
                 </div>
-                <ProgressBar value={d.v} />
+                <ProgressBar value={dimension.value} />
               </div>
             ))}
           </div>
         </Card>
 
-        <Card title="优势分析" icon={<ThumbsUp className="h-4 w-4" />}>
+        <Card title="已匹配技能" icon={<ThumbsUp className="h-4 w-4" />}>
+          {report.matchedSkills.length ? (
+            <div className="flex flex-wrap gap-2">
+              {report.matchedSkills.map((item) => (
+                <Tag key={item} tone="success">
+                  {item}
+                </Tag>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              当前填写的技能与岗位必备技能尚未形成直接匹配。
+            </p>
+          )}
+          {advantages.length > 0 && (
+            <ul className="text-sm space-y-1.5 text-foreground/85 list-disc pl-4">
+              {advantages.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card title="优先差距与风险" icon={<AlertTriangle className="h-4 w-4" />}>
+          <div className="flex flex-wrap gap-2">
+            {report.missingSkills.map((item) => (
+              <Tag key={item} tone="warning">
+                缺失 {item}
+              </Tag>
+            ))}
+          </div>
           <ul className="text-sm space-y-1.5 text-foreground/85 list-disc pl-4">
-            <li>沟通能力突出,适合协作密集型岗位</li>
-            <li>产品基础扎实,有完整 PRD 撰写经验</li>
+            {report.riskPoints.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
           </ul>
         </Card>
 
-        <Card title="短板分析" icon={<AlertTriangle className="h-4 w-4" />}>
-          <ul className="text-sm space-y-1.5 text-foreground/85 list-disc pl-4">
-            <li><span className="font-medium text-amber-700">AI 能力薄弱</span>:缺少 Prompt / Agent 实操项目</li>
-            <li><span className="font-medium text-amber-700">数据分析不足</span>:SQL 仅停留在基础查询</li>
-          </ul>
-        </Card>
-
-        <Card title="改进建议" icon={<Lightbulb className="h-4 w-4" />}>
+        <Card title="下一步行动" icon={<Lightbulb className="h-4 w-4" />}>
           <ol className="text-sm space-y-2 text-foreground/85 list-decimal pl-4">
-            <li>2 周内完成 1 个 Agent 实战项目并上线</li>
-            <li>每天 30 分钟练 SQL,1 个月达到中级</li>
-            <li>读《俞军产品方法论》构建 AI 产品认知</li>
+            {report.nextActions.map((item) => (
+              <li key={item}>{item.replace(/^\d+\.\s*/, "")}</li>
+            ))}
           </ol>
         </Card>
       </div>
@@ -78,49 +161,139 @@ function GapPage() {
   );
 }
 
+function buildDimensions(report: GapReport) {
+  const skills = Array.from(
+    new Set([...report.matchedSkills, ...report.missingSkills]),
+  ).slice(0, 5);
+
+  const fallback = report.priorityGaps.slice(0, 5);
+  const labels = skills.length ? skills : fallback.length ? fallback : ["综合能力"];
+
+  return labels.map((label) => ({
+    label,
+    value: report.matchedSkills.includes(label)
+      ? Math.max(75, report.matchScore)
+      : Math.min(55, report.matchScore),
+  }));
+}
+
 function MatchRing({ value }: { value: number }) {
-  const r = 28, c = 2 * Math.PI * r;
-  const off = c - (value / 100) * c;
+  const radius = 28;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (value / 100) * circumference;
+
   return (
     <svg width="72" height="72" viewBox="0 0 72 72">
-      <circle cx="36" cy="36" r={r} stroke="var(--muted)" strokeWidth="6" fill="none" />
-      <circle cx="36" cy="36" r={r} stroke="var(--primary)" strokeWidth="6" fill="none"
-        strokeDasharray={c} strokeDashoffset={off} strokeLinecap="round"
-        transform="rotate(-90 36 36)" />
-      <text x="36" y="40" textAnchor="middle" fontSize="14" fontWeight="600" fill="var(--foreground)">{value}%</text>
+      <circle
+        cx="36"
+        cy="36"
+        r={radius}
+        stroke="var(--muted)"
+        strokeWidth="6"
+        fill="none"
+      />
+      <circle
+        cx="36"
+        cy="36"
+        r={radius}
+        stroke="var(--primary)"
+        strokeWidth="6"
+        fill="none"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+        transform="rotate(-90 36 36)"
+      />
+      <text
+        x="36"
+        y="40"
+        textAnchor="middle"
+        fontSize="14"
+        fontWeight="600"
+        fill="var(--foreground)"
+      >
+        {value}%
+      </text>
     </svg>
   );
 }
 
-function RadarChart() {
-  const cx = 110, cy = 100, R = 70;
-  const n = DIMS.length;
-  const pts = (scale: number) => DIMS.map((_, i) => {
-    const a = (Math.PI * 2 * i) / n - Math.PI / 2;
-    const r = R * scale;
-    return [cx + r * Math.cos(a), cy + r * Math.sin(a)] as const;
+function RadarChart({
+  dimensions,
+}: {
+  dimensions: { label: string; value: number }[];
+}) {
+  const centerX = 110;
+  const centerY = 100;
+  const radius = 70;
+  const count = dimensions.length;
+  const points = (scale: number) =>
+    dimensions.map((_, index) => {
+      const angle = (Math.PI * 2 * index) / count - Math.PI / 2;
+      const currentRadius = radius * scale;
+      return [
+        centerX + currentRadius * Math.cos(angle),
+        centerY + currentRadius * Math.sin(angle),
+      ] as const;
+    });
+  const polygon = (items: readonly (readonly [number, number])[]) =>
+    items.map((point) => point.join(",")).join(" ");
+  const valuePoints = dimensions.map((dimension, index) => {
+    const angle = (Math.PI * 2 * index) / count - Math.PI / 2;
+    const currentRadius = radius * (dimension.value / 100);
+    return [
+      centerX + currentRadius * Math.cos(angle),
+      centerY + currentRadius * Math.sin(angle),
+    ] as const;
   });
-  const polyStr = (pp: readonly (readonly [number, number])[]) => pp.map(p => p.join(",")).join(" ");
-  const grid = [0.25, 0.5, 0.75, 1];
-  const valPts = DIMS.map((d, i) => {
-    const a = (Math.PI * 2 * i) / n - Math.PI / 2;
-    const r = R * (d.v / 100);
-    return [cx + r * Math.cos(a), cy + r * Math.sin(a)] as const;
-  });
+
   return (
     <svg viewBox="0 0 220 200" className="w-full">
-      {grid.map(g => (
-        <polygon key={g} points={polyStr(pts(g))} fill="none" stroke="var(--border)" strokeWidth="1" />
+      {[0.25, 0.5, 0.75, 1].map((scale) => (
+        <polygon
+          key={scale}
+          points={polygon(points(scale))}
+          fill="none"
+          stroke="var(--border)"
+          strokeWidth="1"
+        />
       ))}
-      {pts(1).map((p, i) => (
-        <line key={i} x1={cx} y1={cy} x2={p[0]} y2={p[1]} stroke="var(--border)" strokeWidth="1" />
+      {points(1).map((point, index) => (
+        <line
+          key={dimensions[index].label}
+          x1={centerX}
+          y1={centerY}
+          x2={point[0]}
+          y2={point[1]}
+          stroke="var(--border)"
+          strokeWidth="1"
+        />
       ))}
-      <polygon points={polyStr(valPts)} fill="var(--primary)" fillOpacity="0.2" stroke="var(--primary)" strokeWidth="2" />
-      {DIMS.map((d, i) => {
-        const a = (Math.PI * 2 * i) / n - Math.PI / 2;
-        const r = R + 16;
-        const x = cx + r * Math.cos(a), y = cy + r * Math.sin(a);
-        return <text key={d.k} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="var(--muted-foreground)">{d.k}</text>;
+      <polygon
+        points={polygon(valuePoints)}
+        fill="var(--primary)"
+        fillOpacity="0.2"
+        stroke="var(--primary)"
+        strokeWidth="2"
+      />
+      {dimensions.map((dimension, index) => {
+        const angle = (Math.PI * 2 * index) / count - Math.PI / 2;
+        const labelRadius = radius + 18;
+        const x = centerX + labelRadius * Math.cos(angle);
+        const y = centerY + labelRadius * Math.sin(angle);
+        return (
+          <text
+            key={dimension.label}
+            x={x}
+            y={y}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize="9"
+            fill="var(--muted-foreground)"
+          >
+            {dimension.label}
+          </text>
+        );
       })}
     </svg>
   );

@@ -32,7 +32,7 @@ export async function extractPdfText(
 
     const pageText =
       content.items
-        .map((item: any) => item.str)
+        .map((item) => ("str" in item ? item.str : ""))
         .join(" ");
 
     text += pageText + "\n";

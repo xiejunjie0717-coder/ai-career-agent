@@ -4,7 +4,7 @@ import { ArrowRight, Check } from "lucide-react";
 import { MobileShell } from "@/components/MobileShell";
 import { PrimaryButton } from "@/components/ui-primitives";
 import { loadState, saveState } from "@/lib/agent-store";
-import { analyzeAbility } from "@/lib/ai";
+import { analyzeAbilityProfile, generateGapReport } from "@/lib/ai";
 
 export const Route = createFileRoute("/assessment")({
   head: () => ({ meta: [{ title: "能力评估 — 职途 Agent" }] }),
@@ -37,6 +37,8 @@ function AssessmentPage() {
         ? s.skills
         : ["PRD", "Figma"]
     );
+    setStrengths(s.strengths);
+    setWeaknesses(s.weaknesses);
   }, []);
 
   const toggle = (s: string) =>
@@ -52,16 +54,21 @@ function AssessmentPage() {
 
       const state = loadState();
 
-      const res = await analyzeAbility({
+      const { profile, text } = await analyzeAbilityProfile({
         targetJob: state.targetJob,
         education,
         experience,
         skills,
         strengths,
         weaknesses,
+        jobProfile: state.jobProfile,
       });
 
-      setResult(res);
+      const gapReport = state.jobProfile
+        ? generateGapReport(state.jobProfile, profile)
+        : null;
+
+      setResult(text);
 
       saveState({
         education,
@@ -69,7 +76,15 @@ function AssessmentPage() {
         skills,
         strengths,
         weaknesses,
+        abilityProfile: profile,
+        gapReport,
+        roadmap: null,
+        projects: [],
+        resumeReport: null,
+        interviewReport: null,
       });
+
+      navigate({ to: "/gap" });
 
     } catch (err) {
       console.error("AI分析失败:", err);

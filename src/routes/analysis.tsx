@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { ArrowRight, TrendingUp, DollarSign, Briefcase, BookOpen, Lightbulb, Building2 } from "lucide-react";
 import { MobileShell } from "@/components/MobileShell";
 import { Card, Tag, PrimaryButton } from "@/components/ui-primitives";
-import { loadState, type AgentState } from "@/lib/agent-store";
-import { analyzeJob } from "@/lib/ai";
+import { loadState, saveState, type AgentState } from "@/lib/agent-store";
+import { analyzeJobProfile } from "@/lib/ai";
 
 export const Route = createFileRoute("/analysis")({
   head: () => ({ meta: [{ title: "岗位分析 — 职途 Agent" }] }),
@@ -16,17 +16,50 @@ function AnalysisPage() {
   const navigate = useNavigate();
   const [state, setState] = useState<AgentState | null>(null);
   const [analysis, setAnalysis] = useState("");
-  useEffect(() => {
-  const s = loadState();
-  setState(s);
+  const [error, setError] = useState("");
 
-  if (s?.targetJob) {
-    analyzeJob(s.targetJob).then(setAnalysis);
-  }
-}, []);
+  useEffect(() => {
+    const s = loadState();
+    setState(s);
+
+    if (!s.targetJob) return;
+
+    analyzeJobProfile({
+      jobName: s.targetJob,
+      company: s.dreamCompany,
+    })
+      .then(({ profile, text }) => {
+        saveState({
+          jobProfile: profile,
+          gapReport: null,
+          roadmap: null,
+          projects: [],
+          resumeReport: null,
+          interviewReport: null,
+        });
+        setState(loadState());
+        setAnalysis(text);
+      })
+      .catch((err) => {
+        console.error("岗位分析失败:", err);
+        setError("岗位分析失败，请检查 API Key、网络连接或 SiliconFlow 余额。");
+      });
+  }, []);
+
   if (!state) return null;
-  const job = state.targetJob || "AI 产品经理";
-  const company = state.dreamCompany || "字节跳动";
+  const profile = state.jobProfile;
+  const job = profile?.title || state.targetJob || "AI 产品经理";
+  const company = profile?.company || state.dreamCompany || "未指定公司";
+  const responsibilities = profile?.responsibilities.length
+    ? profile.responsibilities
+    : [
+        "负责 AI 产品 0-1 设计与迭代，定义产品功能和体验",
+        "结合大模型能力，设计可落地的 AI 应用场景",
+        "协调研发、设计、运营，推动产品上线",
+      ];
+  const requiredSkills = profile?.requiredSkills.length
+    ? profile.requiredSkills
+    : ["Prompt工程", "Agent设计", "PRD", "Figma", "用户研究", "SQL"];
 
   return (
     <MobileShell
@@ -36,10 +69,10 @@ function AnalysisPage() {
     >
       <div className="space-y-5">
         <Card title="AI分析结果">
-  <div className="whitespace-pre-wrap text-sm">
-    {analysis || "AI分析中..."}
-  </div>
-</Card>
+          <div className="whitespace-pre-wrap text-sm">
+            {error || analysis || profile?.summary || "AI分析中..."}
+          </div>
+        </Card>
         <div className="rounded-2xl bg-gradient-to-br from-primary to-blue-500 text-primary-foreground p-5 shadow-sm">
           <div className="flex items-center gap-1.5 text-xs opacity-80">
             <Building2 className="h-3.5 w-3.5" /> {company}
@@ -53,24 +86,26 @@ function AnalysisPage() {
 
         <Card title="岗位职责" icon={<Briefcase className="h-4 w-4" />}>
           <ul className="space-y-2 text-sm text-foreground/85 leading-relaxed list-disc pl-4">
-            <li>负责 AI 产品 0-1 设计与迭代,定义产品功能和体验</li>
-            <li>结合大模型能力,设计可落地的 AI 应用场景</li>
-            <li>协调研发、设计、运营,推动产品上线</li>
+            {responsibilities.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
           </ul>
         </Card>
 
-        <Card title="企业真实需求" subtitle={`基于 ${company} 近 30 天 JD 抓取`}>
+        <Card title="招聘评估标准" subtitle={`面向 ${company} 的岗位要求`}>
           <div className="space-y-2 text-sm">
-            <Req label="懂 LLM / Prompt 工程" weight={92} />
-            <Req label="有数据分析 & SQL 基础" weight={78} />
-            <Req label="完整产品交付经验" weight={70} />
-            <Req label="行业敏感度(教育/金融/B端)" weight={55} />
+            {(profile?.evaluationCriteria.length
+              ? profile.evaluationCriteria
+              : ["AI 应用理解", "产品方案能力", "项目落地经验", "数据分析能力"]
+            ).map((item, index) => (
+              <Req key={item} label={item} weight={Math.max(55, 92 - index * 10)} />
+            ))}
           </div>
         </Card>
 
         <Card title="核心技能要求">
           <div className="flex flex-wrap gap-2">
-            {["Prompt工程","Agent设计","PRD","Figma","用户研究","SQL","数据分析","项目管理"].map(s => (
+            {requiredSkills.map(s => (
               <Tag key={s} tone="primary">{s}</Tag>
             ))}
           </div>

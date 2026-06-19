@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Upload } from "lucide-react";
 
 import { MobileShell } from "@/components/MobileShell";
+import { saveState } from "@/lib/agent-store";
 
 export const Route = createFileRoute("/upload")({
   component: UploadPage,
@@ -30,25 +31,29 @@ function UploadPage() {
 
       const text = await extractPdfText(file);
 
-      console.log("JD内容：");
-      console.log(text);
-      localStorage.setItem(
-       "knowledge_base",
-        text
-      );
+      if (!text.trim()) {
+        throw new Error("PDF 中未解析到可用文本");
+      }
+
+      localStorage.setItem("knowledge_base", text);
 
       alert("知识库导入成功");
       // 保存JD内容
-      localStorage.setItem(
-        "jd_text",
-        text
-      );
+      localStorage.setItem("jd_text", text);
 
       // 保存文件名
-      localStorage.setItem(
-        "jd_file_name",
-        file.name
-      );
+      localStorage.setItem("jd_file_name", file.name);
+
+      saveState({
+        jdText: text,
+        jdFileName: file.name,
+        jobProfile: null,
+        gapReport: null,
+        roadmap: null,
+        projects: [],
+        resumeReport: null,
+        interviewReport: null,
+      });
     } catch (error) {
       console.error(error);
 

@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, FileText, Brain } from "lucide-react";
 import { MobileShell } from "@/components/MobileShell";
+import { analyzeJobProfile } from "@/lib/ai";
+import { loadState, saveState } from "@/lib/agent-store";
 
 export const Route = createFileRoute("/analysis-jd")({
   component: JDAnalysisPage,
@@ -16,69 +18,44 @@ function JDAnalysisPage() {
   useEffect(() => {
     const runAnalysis = async () => {
       try {
-        const jdText = localStorage.getItem("jd_text");
+        const state = loadState();
+        const jdText = state.jdText || localStorage.getItem("jd_text") || "";
 
         if (!jdText) {
           setAnalysis("未找到JD内容");
-          setLoading(false);
           return;
         }
 
-        const prompt = `
-你是一名资深AI招聘顾问。
+        const { profile, text } = await analyzeJobProfile({
+          jobName: state.targetJob || "JD 目标岗位",
+          company: state.dreamCompany,
+          jdText,
+        });
 
-请分析以下岗位JD：
+        saveState({
+          targetJob: profile.title,
+          dreamCompany: profile.company || state.dreamCompany,
+          jdText,
+          jobProfile: profile,
+          gapReport: null,
+          roadmap: null,
+          projects: [],
+          resumeReport: null,
+          interviewReport: null,
+        });
 
-${jdText}
-
-请按照以下格式输出：
-
-【岗位名称】
-
-【核心职责】
-
-【核心技能要求】
-
-【加分项】
-
-【适合什么样的人】
-
-【学习建议】
-
-全程使用中文回答。
-`;
-
-        const response = await fetch(
-          "https://api.siliconflow.cn/v1/chat/completions",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${import.meta.env.VITE_SILICONFLOW_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              model: "Qwen/Qwen3-8B",
-              messages: [
-                {
-                  role: "user",
-                  content: prompt,
-                },
-              ],
-              temperature: 0.7,
-            }),
-          }
-        );
-
-        const data = await response.json();
-
-        console.log("AI返回结果：", data);
-
-        setAnalysis(
-          data?.choices?.[0]?.message?.content || "分析失败"
-        );
+        setAnalysis([
+          text,
+          "",
+          `核心职责：\n${profile.responsibilities.map((item) => `• ${item}`).join("\n")}`,
+          "",
+          `核心技能：\n${profile.requiredSkills.map((item) => `• ${item}`).join("\n")}`,
+          "",
+          `加分项：\n${profile.niceToHaveSkills.map((item) => `• ${item}`).join("\n")}`,
+        ].join("\n"));
       } catch (error) {
         console.error(error);
-        setAnalysis("AI分析失败");
+        setAnalysis("AI分析失败，请检查 API Key、网络连接或 SiliconFlow 余额。");
       } finally {
         setLoading(false);
       }
