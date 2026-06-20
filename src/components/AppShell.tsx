@@ -11,7 +11,7 @@ import {
   ListTodo,
   Map,
   Mic,
-  Sparkles,
+  Route as RouteIcon,
   Target,
   UserRound,
 } from "lucide-react";
@@ -54,19 +54,19 @@ export function AppShell({
 
   return (
     <div className="min-h-screen bg-app text-foreground">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-border/70 bg-background/95 px-4 py-5 backdrop-blur-xl lg:flex lg:flex-col">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-border bg-sidebar px-4 py-5 lg:flex lg:flex-col">
         <Brand />
         <nav className="mt-8 flex-1 space-y-7">
           <NavigationGroup label="产品" items={primaryNavigation} pathname={pathname} />
           <NavigationGroup label="求职工作流" items={workflowNavigation} pathname={pathname} />
         </nav>
-        <div className="rounded-2xl border border-primary/15 bg-primary-soft/60 p-4">
+        <div className="blueprint-panel rounded-lg border border-primary/20 bg-primary-soft/45 p-4">
           <div className="flex items-center gap-2 text-sm font-semibold">
-            <Sparkles className="h-4 w-4 text-primary" />
-            AI Career Agent
+            <RouteIcon className="h-4 w-4 text-primary" />
+            你的成长路线
           </div>
           <p className="mt-2 text-xs leading-5 text-muted-foreground">
-            从岗位理解到行动执行的求职准备 Workflow MVP。
+            看清差距、排好优先级，然后完成今天最值得推进的一步。
           </p>
           <Link
             to="/dashboard"
@@ -78,14 +78,14 @@ export function AppShell({
       </aside>
 
       <div className="min-h-screen lg:pl-64">
-        <header className="sticky top-0 z-20 border-b border-border/70 bg-background/85 backdrop-blur-xl">
+        <header className="sticky top-0 z-20 border-b border-border bg-background/92 backdrop-blur-xl">
           <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
             <div className="lg:hidden">
               {showBack ? (
                 <button
                   type="button"
                   onClick={() => router.history.back()}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                  className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
                   aria-label="返回"
                 >
                   <ArrowLeft className="h-5 w-5" />
@@ -98,13 +98,13 @@ export function AppShell({
               {title ? (
                 <>
                   <div className="hidden text-xs text-muted-foreground sm:block">
-                    AI Career Agent
+                    Your Career Route
                   </div>
                   <h1 className="truncate text-base font-semibold tracking-tight">{title}</h1>
                 </>
               ) : (
                 <span className="hidden text-sm text-muted-foreground lg:block">
-                  AI 职业成长助手
+                  让成长路线清晰可执行
                 </span>
               )}
             </div>
@@ -143,13 +143,16 @@ export function AppShell({
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <Link to="/" className="pressable flex items-center gap-2.5">
-      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-500 text-primary-foreground shadow-sm shadow-primary/20">
-        <Sparkles className="h-4 w-4" />
+      <span className="grid h-9 w-9 grid-cols-2 gap-0.5 rounded-md bg-primary p-2 text-primary-foreground">
+        <span className="border border-current" />
+        <span className="border border-current bg-current" />
+        <span className="border border-current bg-current" />
+        <span className="border border-current" />
       </span>
       {!compact ? (
         <span>
           <span className="block text-sm font-semibold tracking-tight">AI Career Agent</span>
-          <span className="block text-[11px] text-muted-foreground">AI 职业成长助手</span>
+          <span className="block text-[11px] text-muted-foreground">让成长路线清晰可执行</span>
         </span>
       ) : null}
     </Link>
@@ -179,10 +182,10 @@ function NavigationGroup({
             <Link
               key={item.to}
               to={item.to}
-              className={`nav-item flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium ${
+              className={`nav-item flex items-center gap-3 rounded-md border-l-2 px-3 py-2.5 text-sm font-medium ${
                 active
-                  ? "bg-primary-soft text-primary"
-                  : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                  ? "border-primary bg-primary-soft text-primary"
+                  : "border-transparent text-muted-foreground hover:bg-muted/70 hover:text-foreground"
               }`}
             >
               <Icon className="h-4 w-4" strokeWidth={active ? 2.3 : 1.9} />
@@ -201,7 +204,7 @@ function MobileNavigationItem({ item, active }: { item: NavigationItem; active: 
   return (
     <Link
       to={item.to}
-      className={`mobile-nav-item flex flex-col items-center gap-1 rounded-xl py-2 text-[10px] font-medium ${
+      className={`mobile-nav-item flex flex-col items-center gap-1 rounded-md py-2 text-[10px] font-medium ${
         active ? "is-active bg-primary-soft/70 text-primary" : "text-muted-foreground"
       }`}
     >

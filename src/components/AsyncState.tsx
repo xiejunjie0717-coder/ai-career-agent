@@ -19,7 +19,7 @@ export function AsyncState({ status, title, description, onRetry }: AsyncStatePr
 
   return (
     <div
-      className={`rounded-2xl border p-5 ${
+      className={`rounded-lg border p-5 ${
         status === "error"
           ? "border-red-200 bg-red-50"
           : status === "success"
@@ -48,7 +48,7 @@ export function AsyncState({ status, title, description, onRetry }: AsyncStatePr
             <button
               type="button"
               onClick={onRetry}
-              className="pressable mt-3 rounded-xl bg-background px-3 py-2 text-xs font-semibold text-primary shadow-sm"
+              className="pressable mt-3 rounded-md bg-background px-3 py-2 text-xs font-semibold text-primary"
             >
               重新尝试
             </button>

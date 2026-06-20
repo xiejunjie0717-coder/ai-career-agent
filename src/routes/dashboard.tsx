@@ -3,14 +3,15 @@ import { useEffect, useState } from "react";
 import {
   ArrowRight,
   Brain,
-  Briefcase,
+  BriefcaseBusiness,
   CheckCircle2,
   ClipboardList,
   FileText,
+  Flag,
   FolderKanban,
   Map,
   Mic,
-  Sparkles,
+  Route as RouteIcon,
   Target,
 } from "lucide-react";
 
@@ -23,10 +24,10 @@ import { loadState, type AgentState } from "@/lib/agent-store";
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard｜AI Career Agent" },
+      { title: "我的成长路线｜AI Career Agent" },
       {
         name: "description",
-        content: "查看目标岗位、能力匹配度、求职准备进度和下一步行动建议。",
+        content: "查看目标岗位、能力匹配度、求职准备进度和今天最值得推进的行动。",
       },
     ],
   }),
@@ -34,13 +35,13 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 const quickActions = [
-  { to: "/analysis" as const, label: "岗位分析", icon: Target },
-  { to: "/assessment" as const, label: "能力评估", icon: Brain },
-  { to: "/roadmap" as const, label: "学习路线", icon: Map },
-  { to: "/projects" as const, label: "项目推荐", icon: FolderKanban },
-  { to: "/resume" as const, label: "简历优化", icon: FileText },
-  { to: "/interview" as const, label: "模拟面试", icon: Mic },
-  { to: "/tasks" as const, label: "任务中心", icon: ClipboardList },
+  { to: "/analysis" as const, label: "读懂岗位要求", meta: "岗位分析", icon: Target },
+  { to: "/assessment" as const, label: "盘点能力优势", meta: "能力评估", icon: Brain },
+  { to: "/roadmap" as const, label: "规划学习路线", meta: "成长路线", icon: Map },
+  { to: "/projects" as const, label: "积累项目证据", meta: "项目推荐", icon: FolderKanban },
+  { to: "/resume" as const, label: "优化经历表达", meta: "简历优化", icon: FileText },
+  { to: "/interview" as const, label: "练习面试表达", meta: "模拟面试", icon: Mic },
+  { to: "/tasks" as const, label: "推进今日行动", meta: "任务中心", icon: ClipboardList },
 ];
 
 function DashboardPage() {
@@ -52,8 +53,8 @@ function DashboardPage() {
 
   if (!state) {
     return (
-      <MobileShell title="Dashboard" showTabs>
-        <div className="skeleton-shimmer h-64 rounded-3xl" />
+      <MobileShell title="我的成长路线" showTabs>
+        <div className="skeleton-shimmer h-64 rounded-lg" />
       </MobileShell>
     );
   }
@@ -61,114 +62,131 @@ function DashboardPage() {
   const metrics = derivePortfolioMetrics(state);
 
   return (
-    <MobileShell title="Dashboard" showTabs>
+    <MobileShell title="我的成长路线" showTabs>
       <div className="space-y-6">
-        <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <section className="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">求职准备总览</p>
-            <h2 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
-              {state.targetJob
-                ? `向 ${state.targetJob} 目标继续推进`
-                : "建立你的目标岗位与成长路径"}
+            <span className="eyebrow">Your career route</span>
+            <h2 className="mt-4 text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">
+              {state.targetJob ? `继续向 ${state.targetJob} 靠近` : "先定一个目标，我们从这里出发"}
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              所有指标均来自当前浏览器保存的岗位分析、能力画像、报告和任务状态。
+              我会根据你的岗位、能力和任务进度，帮你把下一步排清楚。
             </p>
           </div>
           <Link
             to="/upload"
-            className="pressable inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold shadow-sm hover:border-primary/25 hover:bg-muted/50"
+            className="pressable inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold hover:border-primary/40 hover:bg-primary-soft/35"
           >
-            {state.jdText ? "更新岗位 JD" : "上传岗位 JD"}
+            {state.jdText ? "更新目标岗位" : "添加目标岗位"}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </section>
 
-        <section className="grid gap-4 xl:grid-cols-[1.4fr_0.6fr]">
-          <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 p-6 text-white shadow-xl shadow-slate-900/10 sm:p-7">
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+        <section className="grid gap-4 xl:grid-cols-[1.45fr_0.55fr]">
+          <div className="blueprint-panel rounded-lg border border-border bg-background p-5 sm:p-7">
+            <div className="grid gap-8 md:grid-cols-[1fr_220px] md:items-start">
               <div>
-                <div className="flex items-center gap-2 text-xs text-blue-200">
-                  <Briefcase className="h-4 w-4" />
-                  当前目标岗位
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+                  <BriefcaseBusiness className="h-4 w-4" />
+                  当前路线
                 </div>
-                <h3 className="mt-3 text-2xl font-semibold tracking-tight">
+                <h3 className="mt-4 text-2xl font-semibold tracking-tight">
                   {state.targetJob || "尚未设置目标岗位"}
                 </h3>
-                <p className="mt-2 text-sm text-slate-400">
+                <p className="mt-2 text-sm text-muted-foreground">
                   {state.dreamCompany
                     ? `目标公司 · ${state.dreamCompany}`
-                    : "可以从真实 JD 开始建立岗位上下文"}
+                    : "从真实 JD 开始，后续诊断会更贴近岗位要求"}
                 </p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3">
-                <div className="text-xs text-slate-400">整体流程</div>
-                <div className="mt-1 text-2xl font-semibold tabular-nums">
-                  {metrics.workflow.percentage}%
+                <div className="mt-8 flex items-end gap-4">
+                  <strong className="text-5xl font-semibold tracking-[-0.05em] tabular-nums text-primary">
+                    {metrics.workflow.percentage}
+                    <span className="ml-1 text-xl">%</span>
+                  </strong>
+                  <span className="pb-1 text-xs leading-5 text-muted-foreground">
+                    已完成 {metrics.workflow.completed}/{metrics.workflow.total}
+                    <br />
+                    个核心环节
+                  </span>
                 </div>
               </div>
+              <div className="border-l-2 border-primary bg-primary-soft/50 p-4">
+                <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+                  <Flag className="h-4 w-4" />
+                  路线状态
+                </div>
+                <div className="mt-3 text-lg font-semibold">
+                  {metrics.workflow.percentage === 100 ? "主路线已完成" : "正在持续推进"}
+                </div>
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                  完成当前行动后，后续建议会根据新结果重新排序。
+                </p>
+              </div>
             </div>
-            <div className="mt-8 h-2 overflow-hidden rounded-full bg-white/10">
+            <div className="mt-8 h-1.5 overflow-hidden bg-border">
               <div
-                className="progress-fill h-full rounded-full bg-gradient-to-r from-blue-400 to-violet-400 transition-all"
+                className="progress-fill h-full bg-primary transition-all"
                 style={{ width: `${metrics.workflow.percentage}%` }}
               />
             </div>
-            <div className="mt-3 flex justify-between text-xs text-slate-400">
-              <span>
-                已完成 {metrics.workflow.completed}/{metrics.workflow.total} 个核心环节
-              </span>
-              <span>{metrics.workflow.percentage}%</span>
-            </div>
           </div>
 
-          <div className="rounded-3xl border border-primary/15 bg-primary-soft/55 p-6">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-background text-primary shadow-sm">
-              <Sparkles className="h-5 w-5" />
+          <div className="rounded-lg border border-primary/25 bg-primary p-6 text-primary-foreground">
+            <RouteIcon className="h-6 w-6" />
+            <div className="mt-8 text-xs font-semibold uppercase tracking-[0.14em] text-primary-foreground/70">
+              今天最值得推进
             </div>
-            <div className="mt-5 text-xs font-semibold text-primary">下一步建议</div>
-            <h3 className="mt-1 text-lg font-semibold">{metrics.nextAction.label}</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            <h3 className="mt-2 text-xl font-semibold leading-7">{metrics.nextAction.label}</h3>
+            <p className="mt-3 text-sm leading-6 text-primary-foreground/72">
               {metrics.nextAction.description}
             </p>
             <Link
               to={metrics.nextAction.to}
-              className="pressable mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"
+              className="pressable mt-6 inline-flex h-10 items-center gap-2 rounded-md bg-background px-4 text-sm font-semibold text-primary"
             >
-              继续推进
+              现在去完成
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </section>
 
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid border-l border-t border-border sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
-            label="能力匹配度"
+            label="目标匹配"
             value={formatScore(metrics.abilityMatchScore)}
-            detail={metrics.biggestGap ? `优先补齐：${metrics.biggestGap}` : "等待能力诊断"}
+            detail={metrics.biggestGap ? `优先补齐：${metrics.biggestGap}` : "完成诊断后查看匹配度"}
             icon={<Target />}
+            index="01"
           />
           <MetricCard
-            label="任务完成率"
+            label="行动完成"
             value={metrics.tasks.total ? `${metrics.tasks.completionRate}%` : "--"}
             detail={`${metrics.tasks.completed}/${metrics.tasks.total} 个任务已完成`}
             icon={<CheckCircle2 />}
+            index="02"
           />
           <MetricCard
-            label="简历优化"
+            label="简历准备"
             value={formatScore(metrics.resumeMatchScore)}
-            detail={state.resumeReport ? "已生成岗位定制报告" : "尚未生成报告"}
+            detail={state.resumeReport ? "已生成岗位定制建议" : "尚未生成优化建议"}
             icon={<FileText />}
+            index="03"
           />
           <MetricCard
-            label="面试练习"
+            label="面试状态"
             value={formatScore(metrics.interviewScore)}
-            detail={state.interviewReport ? "已建立模拟面试题库" : "尚未开始练习"}
+            detail={state.interviewReport ? "已建立针对性练习题" : "尚未开始练习"}
             icon={<Mic />}
+            index="04"
           />
         </section>
 
-        <Card title="求职准备 Workflow" subtitle="按顺序完成可以获得更连续、准确的上下文">
+        <Card
+          title="你的成长路线"
+          subtitle="每完成一步，后面的建议都会更贴近你的目标。"
+          className="blueprint-panel"
+        >
           <WorkflowStepper
             completedSteps={[
               Boolean(state.jdText.trim()),
@@ -186,28 +204,32 @@ function DashboardPage() {
         </Card>
 
         <section>
-          <div className="mb-3 flex items-end justify-between">
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight">快捷入口</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                继续当前模块，或回到需要补充的步骤。
-              </p>
-            </div>
+          <div className="mb-4">
+            <span className="eyebrow">Keep moving</span>
+            <h2 className="mt-3 text-lg font-semibold tracking-tight">接下来想推进哪一块？</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              继续当前行动，或回到需要补充证据的步骤。
+            </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid border-l border-t border-border sm:grid-cols-2 xl:grid-cols-4">
             {quickActions.map((action) => {
               const Icon = action.icon;
               return (
                 <Link
                   key={action.to}
                   to={action.to}
-                  className="group pressable surface-card flex items-center gap-3 p-4"
+                  className="group border-b border-r border-border bg-card p-4 transition-colors hover:bg-primary-soft/35"
                 >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-soft text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <span className="flex-1 text-sm font-semibold">{action.label}</span>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
+                  <div className="flex items-center justify-between">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary-soft text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
+                  </div>
+                  <div className="mt-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {action.meta}
+                  </div>
+                  <div className="mt-1 text-sm font-semibold">{action.label}</div>
                 </Link>
               );
             })}
@@ -223,21 +245,22 @@ function MetricCard({
   value,
   detail,
   icon,
+  index,
 }: {
   label: string;
   value: string;
   detail: string;
   icon: React.ReactElement;
+  index: string;
 }) {
   return (
-    <div className="metric-card surface-card p-5">
+    <div className="metric-card border-b border-r border-border bg-card p-5 transition-colors hover:bg-primary-soft/25">
       <div className="flex items-start justify-between">
-        <span className="text-sm font-medium text-muted-foreground">{label}</span>
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-soft text-primary [&>svg]:h-4 [&>svg]:w-4">
-          {icon}
-        </span>
+        <span className="font-mono text-[11px] font-semibold text-primary">{index}</span>
+        <span className="text-primary [&>svg]:h-4 [&>svg]:w-4">{icon}</span>
       </div>
-      <div className="mt-5 text-3xl font-semibold tracking-tight tabular-nums">{value}</div>
+      <div className="mt-6 text-sm font-medium text-muted-foreground">{label}</div>
+      <div className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">{value}</div>
       <p className="mt-2 truncate text-xs text-muted-foreground">{detail}</p>
     </div>
   );

@@ -11,15 +11,15 @@ import {
 } from "lucide-react";
 
 const steps = [
-  { label: "岗位 / JD", icon: FileSearch },
-  { label: "岗位画像", icon: Target },
-  { label: "能力画像", icon: Brain },
-  { label: "Gap", icon: GitCompareArrows },
-  { label: "Roadmap", icon: Map },
-  { label: "Projects", icon: FolderKanban },
-  { label: "Resume", icon: FileText },
-  { label: "Interview", icon: Mic },
-  { label: "Tasks", icon: ListTodo },
+  { label: "目标岗位", icon: FileSearch },
+  { label: "岗位要求", icon: Target },
+  { label: "能力盘点", icon: Brain },
+  { label: "差距排序", icon: GitCompareArrows },
+  { label: "成长路线", icon: Map },
+  { label: "项目证据", icon: FolderKanban },
+  { label: "简历表达", icon: FileText },
+  { label: "面试训练", icon: Mic },
+  { label: "行动任务", icon: ListTodo },
 ];
 
 export function WorkflowStepper({ completedSteps }: { completedSteps?: boolean[] }) {
@@ -42,7 +42,7 @@ export function WorkflowStepper({ completedSteps }: { completedSteps?: boolean[]
               aria-current={active ? "step" : undefined}
             >
               <div className="flex min-w-[76px] flex-col items-center text-center">
-                <span className="workflow-step-icon flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/15 bg-primary-soft text-primary">
+                <span className="workflow-step-icon flex h-10 w-10 items-center justify-center rounded-md border border-primary/20 bg-primary-soft text-primary">
                   <Icon className="h-5 w-5" />
                 </span>
                 <span
@@ -55,7 +55,7 @@ export function WorkflowStepper({ completedSteps }: { completedSteps?: boolean[]
               </div>
               {index < steps.length - 1 ? (
                 <span
-                  className={`workflow-connector mx-2 h-px flex-1 bg-gradient-to-r from-primary/35 to-border ${
+                  className={`workflow-connector mx-2 h-px flex-1 bg-primary/30 ${
                     complete ? "is-complete" : "opacity-70"
                   }`}
                 />
