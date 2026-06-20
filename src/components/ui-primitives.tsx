@@ -1,16 +1,28 @@
 import type { ReactNode } from "react";
 
-export function Card({ title, subtitle, icon, action, children, className = "" }: {
-  title?: string; subtitle?: string; icon?: ReactNode; action?: ReactNode; children: ReactNode; className?: string;
+export function Card({
+  title,
+  subtitle,
+  icon,
+  action,
+  children,
+  className = "",
+}: {
+  title?: string;
+  subtitle?: string;
+  icon?: ReactNode;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
 }) {
   return (
-    <div className={`rounded-2xl border border-border bg-card p-5 space-y-3 ${className}`}>
+    <div className={`surface-card space-y-4 p-5 sm:p-6 ${className}`}>
       {(title || icon) && (
         <div className="flex items-start justify-between gap-2">
           <div>
             <div className="flex items-center gap-2">
               {icon && <span className="text-primary">{icon}</span>}
-              {title && <h2 className="font-semibold tracking-tight">{title}</h2>}
+              {title && <h2 className="font-semibold tracking-tight text-foreground">{title}</h2>}
             </div>
             {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
           </div>
@@ -31,7 +43,13 @@ export function SectionTitle({ children, hint }: { children: ReactNode; hint?: R
   );
 }
 
-export function Tag({ children, tone = "default" }: { children: ReactNode; tone?: "default" | "primary" | "success" | "warning" | "muted" }) {
+export function Tag({
+  children,
+  tone = "default",
+}: {
+  children: ReactNode;
+  tone?: "default" | "primary" | "success" | "warning" | "muted";
+}) {
   const tones = {
     default: "bg-card border border-border text-foreground",
     primary: "bg-primary-soft text-accent-foreground",
@@ -39,15 +57,31 @@ export function Tag({ children, tone = "default" }: { children: ReactNode; tone?
     warning: "bg-amber-50 text-amber-700",
     muted: "bg-muted text-muted-foreground",
   };
-  return <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${tones[tone]}`}>{children}</span>;
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${tones[tone]}`}
+    >
+      {children}
+    </span>
+  );
 }
 
-export function PrimaryButton({ children, onClick, disabled, icon }: { children: ReactNode; onClick?: () => void; disabled?: boolean; icon?: ReactNode }) {
+export function PrimaryButton({
+  children,
+  onClick,
+  disabled,
+  icon,
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  icon?: ReactNode;
+}) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className="w-full h-12 rounded-2xl bg-primary text-primary-foreground font-medium flex items-center justify-center gap-2 disabled:opacity-40 transition shadow-sm shadow-primary/25 active:scale-[0.98]"
+      className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm shadow-primary/25 transition hover:bg-primary/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
     >
       {children} {icon}
     </button>
@@ -57,8 +91,11 @@ export function PrimaryButton({ children, onClick, disabled, icon }: { children:
 export function ProgressBar({ value, max = 100 }: { value: number; max?: number }) {
   const pct = Math.min(100, Math.round((value / max) * 100));
   return (
-    <div className="h-2 rounded-full bg-muted overflow-hidden">
-      <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${pct}%` }} />
+    <div className="h-2 overflow-hidden rounded-full bg-muted">
+      <div
+        className="progress-fill h-full rounded-full bg-primary transition-all"
+        style={{ width: `${pct}%` }}
+      />
     </div>
   );
 }

@@ -11,13 +11,15 @@ import {
   Sparkles,
   Target,
 } from "lucide-react";
+import { toast } from "sonner";
 
+import { AiResultActions } from "@/components/AiResultActions";
+import { AsyncState } from "@/components/AsyncState";
+import { EmptyState } from "@/components/EmptyState";
 import { MobileShell } from "@/components/MobileShell";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, PrimaryButton, ProgressBar, Tag } from "@/components/ui-primitives";
-import {
-  evaluateInterviewAnswer,
-  generateInterviewQuestions,
-} from "@/lib/ai";
+import { evaluateInterviewAnswer, generateInterviewQuestions } from "@/lib/ai";
 import {
   loadState,
   saveState,
@@ -25,6 +27,7 @@ import {
   type InterviewQuestion,
   type InterviewReport,
 } from "@/lib/agent-store";
+import { formatInterviewMarkdown, workflowPageMeta } from "@/lib/workflow-ui";
 
 export const Route = createFileRoute("/interview")({
   head: () => ({ meta: [{ title: "模拟面试" }] }),
@@ -48,17 +51,21 @@ function InterviewPage() {
     }
 
     setLoadingQuestions(true);
-    const interviewReport = await generateInterviewQuestions({
-      targetJob: current.targetJob,
-      jobProfile: current.jobProfile,
-      abilityProfile: current.abilityProfile,
-      gapReport: current.gapReport,
-      projects: current.projects,
-      resumeReport: current.resumeReport,
-    });
-    saveState({ interviewReport });
-    setState(loadState());
-    setLoadingQuestions(false);
+    try {
+      const interviewReport = await generateInterviewQuestions({
+        targetJob: current.targetJob,
+        jobProfile: current.jobProfile,
+        abilityProfile: current.abilityProfile,
+        gapReport: current.gapReport,
+        projects: current.projects,
+        resumeReport: current.resumeReport,
+      });
+      saveState({ interviewReport });
+      setState(loadState());
+      toast.success("模拟面试题已生成");
+    } finally {
+      setLoadingQuestions(false);
+    }
   };
 
   useEffect(() => {
@@ -72,22 +79,18 @@ function InterviewPage() {
 
   if (!state) return null;
 
-  if (
-    !state.jobProfile ||
-    !state.abilityProfile ||
-    !state.gapReport ||
-    !state.resumeReport
-  ) {
+  if (!state.jobProfile || !state.abilityProfile || !state.gapReport || !state.resumeReport) {
     return (
       <MobileShell title="模拟面试" showBack>
-        <Card title="请先完成简历优化">
-          <p className="text-sm text-muted-foreground leading-6">
-            模拟面试需要结合目标岗位、能力差距、项目推荐和简历报告生成。请先完成前面的主链路。
-          </p>
-          <PrimaryButton onClick={() => navigate({ to: "/resume" })}>
-            前往简历优化
-          </PrimaryButton>
-        </Card>
+        <PageHeader {...workflowPageMeta.interview} backTo="/resume" />
+        <div className="mt-6">
+          <EmptyState
+            title="请先完成简历优化"
+            description="面试题需要结合目标岗位、能力差距、项目推荐和简历报告生成。"
+            actionLabel="前往简历优化"
+            to="/resume"
+          />
+        </div>
       </MobileShell>
     );
   }
@@ -100,9 +103,7 @@ function InterviewPage() {
     const nextReport = {
       ...report,
       questions: report.questions.map((question) =>
-        question.id === questionId
-          ? { ...question, userAnswer: answer }
-          : question,
+        question.id === questionId ? { ...question, userAnswer: answer } : question,
       ),
     };
     saveState({ interviewReport: nextReport });
@@ -113,31 +114,35 @@ function InterviewPage() {
     if (!report || evaluatingId) return;
 
     setEvaluatingId(question.id);
-    const evaluation = await evaluateInterviewAnswer({
-      question,
-      userAnswer: question.userAnswer,
-      targetJob: state.targetJob,
-      jobProfile: state.jobProfile!,
-      projects: state.projects,
-      resumeReport: state.resumeReport!,
-    });
-    const questions = report.questions.map((item) =>
-      item.id === question.id
-        ? {
-            ...item,
-            score: evaluation.score,
-            feedback: evaluation.feedback,
-            missingPoints: evaluation.missingPoints,
-            optimizedAnswer: evaluation.optimizedAnswer,
-            nextPracticeSuggestion: evaluation.nextPracticeSuggestion,
-          }
-        : item,
-    );
-    const nextReport = recalculateReport(report, questions);
+    try {
+      const evaluation = await evaluateInterviewAnswer({
+        question,
+        userAnswer: question.userAnswer,
+        targetJob: state.targetJob,
+        jobProfile: state.jobProfile!,
+        projects: state.projects,
+        resumeReport: state.resumeReport!,
+      });
+      const questions = report.questions.map((item) =>
+        item.id === question.id
+          ? {
+              ...item,
+              score: evaluation.score,
+              feedback: evaluation.feedback,
+              missingPoints: evaluation.missingPoints,
+              optimizedAnswer: evaluation.optimizedAnswer,
+              nextPracticeSuggestion: evaluation.nextPracticeSuggestion,
+            }
+          : item,
+      );
+      const nextReport = recalculateReport(report, questions);
 
-    saveState({ interviewReport: nextReport });
-    setState({ ...state, interviewReport: nextReport });
-    setEvaluatingId(null);
+      saveState({ interviewReport: nextReport });
+      setState({ ...state, interviewReport: nextReport });
+      toast.success("回答评分已完成");
+    } finally {
+      setEvaluatingId(null);
+    }
   };
 
   return (
@@ -148,17 +153,14 @@ function InterviewPage() {
         <PrimaryButton
           onClick={() => void createInterview({ ...state, interviewReport: null })}
           disabled={loadingQuestions || evaluatingId !== null}
-          icon={
-            <RefreshCw
-              className={`h-4 w-4 ${loadingQuestions ? "animate-spin" : ""}`}
-            />
-          }
+          icon={<RefreshCw className={`h-4 w-4 ${loadingQuestions ? "animate-spin" : ""}`} />}
         >
           重新生成面试题
         </PrimaryButton>
       }
     >
       <div className="space-y-5">
+        <PageHeader {...workflowPageMeta.interview} backTo="/resume" />
         <Card
           title="面试准备概览"
           subtitle={state.dreamCompany || state.jobProfile.company || "目标公司待定"}
@@ -176,6 +178,11 @@ function InterviewPage() {
 
           {report && (
             <>
+              <AiResultActions
+                text={formatInterviewMarkdown(report)}
+                onRegenerate={() => void createInterview({ ...state, interviewReport: null })}
+                regenerating={loadingQuestions}
+              />
               <div className="flex flex-wrap gap-2">
                 {report.interviewFocus.map((focus) => (
                   <Tag key={focus} tone="muted">
@@ -196,12 +203,11 @@ function InterviewPage() {
         </Card>
 
         {loadingQuestions && !report && (
-          <Card>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <LoaderCircle className="h-4 w-4 animate-spin text-primary" />
-              正在生成岗位定制面试题，AI 失败时会自动使用本地题库……
-            </div>
-          </Card>
+          <AsyncState
+            status="loading"
+            title="正在生成岗位定制面试题"
+            description="AI 请求失败时会自动使用本地题库，保证核心演示链路可继续。"
+          />
         )}
 
         {report?.questions.map((question, index) => (
@@ -316,42 +322,28 @@ function QuestionCard({
             <div>
               <div className="flex justify-between text-xs mb-1">
                 <span>本题得分</span>
-                <span className="font-semibold text-primary">
-                  {question.score}/100
-                </span>
+                <span className="font-semibold text-primary">{question.score}/100</span>
               </div>
               <ProgressBar value={question.score} />
             </div>
 
-            <ResultSection
-              title="AI 反馈"
-              icon={<MessageSquareText className="h-4 w-4" />}
-            >
+            <ResultSection title="AI 反馈" icon={<MessageSquareText className="h-4 w-4" />}>
               <p>{question.feedback}</p>
             </ResultSection>
 
             {question.missingPoints.length > 0 && (
-              <ResultSection
-                title="缺失要点"
-                icon={<AlertCircle className="h-4 w-4" />}
-              >
+              <ResultSection title="缺失要点" icon={<AlertCircle className="h-4 w-4" />}>
                 <BulletList items={question.missingPoints} />
               </ResultSection>
             )}
 
-            <ResultSection
-              title="优化答案"
-              icon={<Sparkles className="h-4 w-4" />}
-            >
+            <ResultSection title="优化答案" icon={<Sparkles className="h-4 w-4" />}>
               <div className="p-3 rounded-xl bg-primary-soft/60 leading-7">
                 {question.optimizedAnswer}
               </div>
             </ResultSection>
 
-            <ResultSection
-              title="下一步练习"
-              icon={<Target className="h-4 w-4" />}
-            >
+            <ResultSection title="下一步练习" icon={<Target className="h-4 w-4" />}>
               <p>{question.nextPracticeSuggestion}</p>
             </ResultSection>
           </div>
@@ -366,23 +358,18 @@ function recalculateReport(
   questions: InterviewQuestion[],
 ): InterviewReport {
   const evaluated = questions.filter(
-    (question): question is InterviewQuestion & { score: number } =>
-      question.score !== null,
+    (question): question is InterviewQuestion & { score: number } => question.score !== null,
   );
   const overallScore = evaluated.length
     ? Math.round(
-        evaluated.reduce((total, question) => total + question.score, 0) /
-          evaluated.length,
+        evaluated.reduce((total, question) => total + question.score, 0) / evaluated.length,
       )
     : 0;
   const strengths = evaluated
     .filter((question) => question.score >= 75)
     .map((question) => `${question.relatedSkill}：${question.feedback}`);
   const weaknesses = Array.from(
-    new Set([
-      ...report.weaknesses,
-      ...evaluated.flatMap((question) => question.missingPoints),
-    ]),
+    new Set([...report.weaknesses, ...evaluated.flatMap((question) => question.missingPoints)]),
   ).slice(0, 6);
   const improvementAdvice = Array.from(
     new Set([

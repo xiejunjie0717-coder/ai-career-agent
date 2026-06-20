@@ -3,14 +3,13 @@ import { useEffect, useState } from "react";
 import { ArrowRight, ThumbsUp, AlertTriangle, Lightbulb } from "lucide-react";
 
 import { MobileShell } from "@/components/MobileShell";
+import { AiResultActions } from "@/components/AiResultActions";
+import { EmptyState } from "@/components/EmptyState";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, PrimaryButton, ProgressBar, Tag } from "@/components/ui-primitives";
 import { generateGapReport } from "@/lib/ai";
-import {
-  loadState,
-  saveState,
-  type AgentState,
-  type GapReport,
-} from "@/lib/agent-store";
+import { loadState, saveState, type AgentState, type GapReport } from "@/lib/agent-store";
+import { formatGapReportMarkdown, workflowPageMeta } from "@/lib/workflow-ui";
 
 export const Route = createFileRoute("/gap")({
   head: () => ({ meta: [{ title: "能力差距分析" }] }),
@@ -46,14 +45,15 @@ function GapPage() {
   if (!report) {
     return (
       <MobileShell title="能力差距分析" showBack>
-        <Card title="暂时无法生成差距报告">
-          <p className="text-sm text-muted-foreground leading-6">
-            请先完成岗位分析和能力评估，系统需要两份结构化画像才能生成差距报告。
-          </p>
-          <PrimaryButton onClick={() => navigate({ to: "/analysis" })}>
-            返回岗位分析
-          </PrimaryButton>
-        </Card>
+        <PageHeader {...workflowPageMeta.gap} backTo="/assessment" />
+        <div className="mt-6">
+          <EmptyState
+            title="暂时无法生成差距报告"
+            description="请先完成岗位分析和能力评估，系统需要两份结构化画像进行对比。"
+            actionLabel="前往岗位分析"
+            to="/analysis"
+          />
+        </div>
       </MobileShell>
     );
   }
@@ -77,14 +77,13 @@ function GapPage() {
       }
     >
       <div className="space-y-5">
+        <PageHeader {...workflowPageMeta.gap} backTo="/assessment" />
         <Card>
           <div className="flex items-center gap-4">
             <MatchRing value={report.matchScore} />
             <div className="flex-1">
               <div className="text-xs text-muted-foreground">岗位匹配度</div>
-              <div className="text-2xl font-semibold tracking-tight">
-                {report.matchScore}%
-              </div>
+              <div className="text-2xl font-semibold tracking-tight">{report.matchScore}%</div>
               <div className="text-xs text-amber-600 mt-1">
                 {report.priorityGaps.length
                   ? `优先补齐 ${report.priorityGaps.length} 项关键差距`
@@ -92,6 +91,7 @@ function GapPage() {
               </div>
             </div>
           </div>
+          <AiResultActions text={formatGapReportMarkdown(report)} />
         </Card>
 
         <Card title="核心能力对比" subtitle="基于岗位画像与用户能力画像">
@@ -101,9 +101,7 @@ function GapPage() {
               <div key={dimension.label}>
                 <div className="flex justify-between text-xs mb-1">
                   <span>{dimension.label}</span>
-                  <span className="tabular-nums text-muted-foreground">
-                    {dimension.value}/100
-                  </span>
+                  <span className="tabular-nums text-muted-foreground">{dimension.value}/100</span>
                 </div>
                 <ProgressBar value={dimension.value} />
               </div>
@@ -149,6 +147,17 @@ function GapPage() {
           </ul>
         </Card>
 
+        <Card title="优先补齐项">
+          <div className="grid gap-2 sm:grid-cols-2">
+            {report.priorityGaps.map((item, index) => (
+              <div key={item} className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <div className="text-xs font-semibold text-amber-700">优先级 {index + 1}</div>
+                <div className="mt-1 text-sm font-medium text-amber-950">{item}</div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
         <Card title="下一步行动" icon={<Lightbulb className="h-4 w-4" />}>
           <ol className="text-sm space-y-2 text-foreground/85 list-decimal pl-4">
             {report.nextActions.map((item) => (
@@ -162,9 +171,10 @@ function GapPage() {
 }
 
 function buildDimensions(report: GapReport) {
-  const skills = Array.from(
-    new Set([...report.matchedSkills, ...report.missingSkills]),
-  ).slice(0, 5);
+  const skills = Array.from(new Set([...report.matchedSkills, ...report.missingSkills])).slice(
+    0,
+    5,
+  );
 
   const fallback = report.priorityGaps.slice(0, 5);
   const labels = skills.length ? skills : fallback.length ? fallback : ["综合能力"];
@@ -184,14 +194,7 @@ function MatchRing({ value }: { value: number }) {
 
   return (
     <svg width="72" height="72" viewBox="0 0 72 72">
-      <circle
-        cx="36"
-        cy="36"
-        r={radius}
-        stroke="var(--muted)"
-        strokeWidth="6"
-        fill="none"
-      />
+      <circle cx="36" cy="36" r={radius} stroke="var(--muted)" strokeWidth="6" fill="none" />
       <circle
         cx="36"
         cy="36"
@@ -218,11 +221,7 @@ function MatchRing({ value }: { value: number }) {
   );
 }
 
-function RadarChart({
-  dimensions,
-}: {
-  dimensions: { label: string; value: number }[];
-}) {
+function RadarChart({ dimensions }: { dimensions: { label: string; value: number }[] }) {
   const centerX = 110;
   const centerY = 100;
   const radius = 70;

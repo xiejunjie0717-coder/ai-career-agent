@@ -8,11 +8,17 @@ import {
   Sparkles,
   UserRound,
 } from "lucide-react";
+import { toast } from "sonner";
 
+import { AiResultActions } from "@/components/AiResultActions";
+import { AsyncState } from "@/components/AsyncState";
+import { EmptyState } from "@/components/EmptyState";
 import { MobileShell } from "@/components/MobileShell";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, PrimaryButton, Tag, ProgressBar } from "@/components/ui-primitives";
 import { generateResumeReport } from "@/lib/ai";
 import { loadState, saveState, type AgentState } from "@/lib/agent-store";
+import { formatResumeMarkdown, workflowPageMeta } from "@/lib/workflow-ui";
 
 export const Route = createFileRoute("/resume")({
   head: () => ({ meta: [{ title: "简历优化" }] }),
@@ -35,16 +41,20 @@ function ResumePage() {
     }
 
     setLoading(true);
-    const resumeReport = await generateResumeReport({
-      targetJob: current.targetJob,
-      jobProfile: current.jobProfile,
-      abilityProfile: current.abilityProfile,
-      gapReport: current.gapReport,
-      projects: current.projects,
-    });
-    saveState({ resumeReport, interviewReport: null });
-    setState(loadState());
-    setLoading(false);
+    try {
+      const resumeReport = await generateResumeReport({
+        targetJob: current.targetJob,
+        jobProfile: current.jobProfile,
+        abilityProfile: current.abilityProfile,
+        gapReport: current.gapReport,
+        projects: current.projects,
+      });
+      saveState({ resumeReport, interviewReport: null });
+      setState(loadState());
+      toast.success("简历优化报告已生成");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -66,14 +76,15 @@ function ResumePage() {
   ) {
     return (
       <MobileShell title="简历优化" showBack>
-        <Card title="请先生成项目推荐">
-          <p className="text-sm text-muted-foreground leading-6">
-            简历项目经历需要基于目标岗位、能力差距和推荐项目生成。请先完成项目推荐。
-          </p>
-          <PrimaryButton onClick={() => navigate({ to: "/projects" })}>
-            前往项目推荐
-          </PrimaryButton>
-        </Card>
+        <PageHeader {...workflowPageMeta.resume} backTo="/projects" />
+        <div className="mt-6">
+          <EmptyState
+            title="请先完成项目推荐"
+            description="简历报告需要岗位画像、能力画像、Gap 报告和推荐项目作为输入。"
+            actionLabel="前往项目推荐"
+            to="/projects"
+          />
+        </div>
       </MobileShell>
     );
   }
@@ -95,6 +106,7 @@ function ResumePage() {
       }
     >
       <div className="space-y-5">
+        <PageHeader {...workflowPageMeta.resume} backTo="/projects" />
         <Card
           title="岗位定制简历报告"
           subtitle={`目标岗位：${state.targetJob || state.jobProfile.title}`}
@@ -103,15 +115,21 @@ function ResumePage() {
           <p className="text-sm text-muted-foreground leading-6">
             当前报告基于岗位画像、个人能力、Gap 和推荐项目生成，不会虚构未提供的业务指标。
           </p>
+          {report ? (
+            <AiResultActions
+              text={formatResumeMarkdown(report)}
+              onRegenerate={() => void createReport(state)}
+              regenerating={loading}
+            />
+          ) : null}
         </Card>
 
         {loading && !report && (
-          <Card>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Sparkles className="h-4 w-4 text-primary" />
-              正在生成简历报告，AI 失败时将自动使用本地方案……
-            </div>
-          </Card>
+          <AsyncState
+            status="loading"
+            title="正在生成简历优化建议"
+            description="AI 正在对比岗位关键词、能力差距和项目经历；请求失败时会使用本地兜底报告。"
+          />
         )}
 
         {report && (
@@ -153,7 +171,8 @@ function ResumePage() {
                 ))}
               </div>
               <p className="text-sm text-muted-foreground leading-6">
-                建议在简历中按“产品能力 / AI 能力 / 数据能力 / 工具”分类展示，并优先放置岗位高频关键词。
+                建议在简历中按“产品能力 / AI 能力 / 数据能力 /
+                工具”分类展示，并优先放置岗位高频关键词。
               </p>
             </Card>
 
@@ -217,14 +236,7 @@ function ScoreRing({ value }: { value: number }) {
   return (
     <div className="relative w-20 h-20 shrink-0">
       <svg viewBox="0 0 80 80">
-        <circle
-          cx="40"
-          cy="40"
-          r={radius}
-          stroke="var(--muted)"
-          strokeWidth="7"
-          fill="none"
-        />
+        <circle cx="40" cy="40" r={radius} stroke="var(--muted)" strokeWidth="7" fill="none" />
         <circle
           cx="40"
           cy="40"

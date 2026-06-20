@@ -20,6 +20,7 @@ import { Route as OffersRouteImport } from './routes/offers'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as InterviewRouteImport } from './routes/interview'
 import { Route as GapRouteImport } from './routes/gap'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AssessmentRouteImport } from './routes/assessment'
 import { Route as AnalysisJdRouteImport } from './routes/analysis-jd'
 import { Route as AnalysisRouteImport } from './routes/analysis'
@@ -80,6 +81,11 @@ const GapRoute = GapRouteImport.update({
   path: '/gap',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AssessmentRoute = AssessmentRouteImport.update({
   id: '/assessment',
   path: '/assessment',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/analysis': typeof AnalysisRoute
   '/analysis-jd': typeof AnalysisJdRoute
   '/assessment': typeof AssessmentRoute
+  '/dashboard': typeof DashboardRoute
   '/gap': typeof GapRoute
   '/interview': typeof InterviewRoute
   '/jobs': typeof JobsRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/analysis': typeof AnalysisRoute
   '/analysis-jd': typeof AnalysisJdRoute
   '/assessment': typeof AssessmentRoute
+  '/dashboard': typeof DashboardRoute
   '/gap': typeof GapRoute
   '/interview': typeof InterviewRoute
   '/jobs': typeof JobsRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/analysis': typeof AnalysisRoute
   '/analysis-jd': typeof AnalysisJdRoute
   '/assessment': typeof AssessmentRoute
+  '/dashboard': typeof DashboardRoute
   '/gap': typeof GapRoute
   '/interview': typeof InterviewRoute
   '/jobs': typeof JobsRoute
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/analysis'
     | '/analysis-jd'
     | '/assessment'
+    | '/dashboard'
     | '/gap'
     | '/interview'
     | '/jobs'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/analysis'
     | '/analysis-jd'
     | '/assessment'
+    | '/dashboard'
     | '/gap'
     | '/interview'
     | '/jobs'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/analysis'
     | '/analysis-jd'
     | '/assessment'
+    | '/dashboard'
     | '/gap'
     | '/interview'
     | '/jobs'
@@ -212,6 +224,7 @@ export interface RootRouteChildren {
   AnalysisRoute: typeof AnalysisRoute
   AnalysisJdRoute: typeof AnalysisJdRoute
   AssessmentRoute: typeof AssessmentRoute
+  DashboardRoute: typeof DashboardRoute
   GapRoute: typeof GapRoute
   InterviewRoute: typeof InterviewRoute
   JobsRoute: typeof JobsRoute
@@ -304,6 +317,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GapRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/assessment': {
       id: '/assessment'
       path: '/assessment'
@@ -340,6 +360,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnalysisRoute: AnalysisRoute,
   AnalysisJdRoute: AnalysisJdRoute,
   AssessmentRoute: AssessmentRoute,
+  DashboardRoute: DashboardRoute,
   GapRoute: GapRoute,
   InterviewRoute: InterviewRoute,
   JobsRoute: JobsRoute,

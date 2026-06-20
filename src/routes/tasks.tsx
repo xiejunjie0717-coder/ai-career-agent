@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   BookOpen,
   Check,
@@ -9,20 +9,19 @@ import {
   MessageSquareText,
   RefreshCw,
 } from "lucide-react";
+import { toast } from "sonner";
 
+import { EmptyState } from "@/components/EmptyState";
 import { MobileShell } from "@/components/MobileShell";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, ProgressBar, Tag } from "@/components/ui-primitives";
-import {
-  loadState,
-  saveState,
-  type AgentTask,
-  type TaskStatus,
-} from "@/lib/agent-store";
+import { loadState, saveState, type AgentTask, type TaskStatus } from "@/lib/agent-store";
 import {
   calculateTaskStats,
   generateTasksFromAgentState,
   mergeTasksPreservingStatus,
 } from "@/lib/tasks";
+import { workflowPageMeta } from "@/lib/workflow-ui";
 
 export const Route = createFileRoute("/tasks")({
   head: () => ({ meta: [{ title: "任务中心" }] }),
@@ -50,7 +49,7 @@ function TasksPage() {
   const [filter, setFilter] = useState<TaskFilter>("all");
   const [ready, setReady] = useState(false);
 
-  const regenerateTasks = () => {
+  const regenerateTasks = useCallback((announce = false) => {
     const current = loadState();
     const generated = generateTasksFromAgentState(current);
     const merged = mergeTasksPreservingStatus(current.tasks, generated);
@@ -58,11 +57,12 @@ function TasksPage() {
     saveState({ tasks: merged });
     setTasks(merged);
     setReady(true);
-  };
+    if (announce) toast.success("任务已根据最新报告重新整理");
+  }, []);
 
   useEffect(() => {
     regenerateTasks();
-  }, []);
+  }, [regenerateTasks]);
 
   const stats = useMemo(() => calculateTaskStats(tasks), [tasks]);
   const visibleTasks = useMemo(
@@ -88,6 +88,7 @@ function TasksPage() {
 
     setTasks(nextTasks);
     saveState({ tasks: nextTasks });
+    if (status === "done") toast.success("任务已标记完成");
   };
 
   return (
@@ -97,7 +98,7 @@ function TasksPage() {
       rightSlot={
         <button
           type="button"
-          onClick={regenerateTasks}
+          onClick={() => regenerateTasks(true)}
           className="inline-flex items-center gap-1 text-xs font-medium text-primary"
         >
           <RefreshCw className="h-3.5 w-3.5" />
@@ -106,15 +107,13 @@ function TasksPage() {
       }
     >
       <div className="space-y-5">
+        <PageHeader {...workflowPageMeta.tasks} backTo="/dashboard" />
         <Card>
           <div className="grid grid-cols-4 gap-2 text-center">
             <Stat value={stats.total} label="总任务" />
             <Stat value={stats.completed} label="已完成" />
             <Stat value={`${stats.completionRate}%`} label="完成率" />
-            <Stat
-              value={formatMinutes(stats.estimatedMinutes)}
-              label="预计耗时"
-            />
+            <Stat value={formatMinutes(stats.estimatedMinutes)} label="预计耗时" />
           </div>
           <ProgressBar value={stats.completed} max={Math.max(1, stats.total)} />
           <p className="text-xs text-muted-foreground">
@@ -143,9 +142,7 @@ function TasksPage() {
           <EmptyTasks />
         ) : visibleTasks.length === 0 ? (
           <Card>
-            <p className="text-sm text-muted-foreground text-center py-4">
-              当前筛选下暂无任务。
-            </p>
+            <p className="text-sm text-muted-foreground text-center py-4">当前筛选下暂无任务。</p>
           </Card>
         ) : (
           <div className="space-y-3">
@@ -153,9 +150,7 @@ function TasksPage() {
               <TaskCard
                 key={task.id}
                 task={task}
-                onStatusChange={(status) =>
-                  updateTaskStatus(task.id, status)
-                }
+                onStatusChange={(status) => updateTaskStatus(task.id, status)}
               />
             ))}
           </div>
@@ -177,9 +172,7 @@ function TaskCard({
   return (
     <div
       className={`rounded-2xl border p-4 space-y-3 transition ${
-        completed
-          ? "border-border bg-muted/40"
-          : "border-border bg-card"
+        completed ? "border-border bg-muted/40" : "border-border bg-card"
       }`}
     >
       <div className="flex items-start gap-3">
@@ -199,25 +192,19 @@ function TaskCard({
           >
             {task.title}
           </div>
-          <p className="text-xs text-muted-foreground leading-5 mt-1">
-            {task.description}
-          </p>
+          <p className="text-xs text-muted-foreground leading-5 mt-1">{task.description}</p>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <Tag tone={categoryTagTone(task)}>{task.category}</Tag>
-        <Tag tone={priorityTone(task.priority)}>
-          {priorityLabel(task.priority)}
-        </Tag>
+        <Tag tone={priorityTone(task.priority)}>{priorityLabel(task.priority)}</Tag>
         <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
           <Clock className="h-3.5 w-3.5" />
           {formatMinutes(task.estimatedMinutes)}
         </span>
         {task.relatedSkill && (
-          <span className="text-xs text-muted-foreground truncate">
-            · {task.relatedSkill}
-          </span>
+          <span className="text-xs text-muted-foreground truncate">· {task.relatedSkill}</span>
         )}
       </div>
 
@@ -243,17 +230,12 @@ function TaskCard({
 
 function EmptyTasks() {
   return (
-    <Card>
-      <div className="flex flex-col items-center text-center py-5">
-        <div className="h-12 w-12 rounded-2xl bg-primary-soft text-primary flex items-center justify-center mb-3">
-          <ListTodo className="h-6 w-6" />
-        </div>
-        <h2 className="font-semibold">暂无可执行任务</h2>
-        <p className="text-sm text-muted-foreground leading-6 mt-1">
-          请先完成学习路线、项目推荐或模拟面试，系统会自动整理下一步行动。
-        </p>
-      </div>
-    </Card>
+    <EmptyState
+      title="暂无可执行任务"
+      description="请先完成学习路线、项目推荐或模拟面试，系统会自动整理下一步行动。"
+      actionLabel="查看学习路线"
+      to="/roadmap"
+    />
   );
 }
 
@@ -290,17 +272,13 @@ function categoryTone(task: AgentTask) {
   return "bg-blue-50 text-blue-600";
 }
 
-function categoryTagTone(
-  task: AgentTask,
-): "primary" | "success" | "warning" {
+function categoryTagTone(task: AgentTask): "primary" | "success" | "warning" {
   if (task.category === "项目") return "primary";
   if (task.category === "面试") return "warning";
   return "success";
 }
 
-function priorityTone(
-  priority: AgentTask["priority"],
-): "warning" | "primary" | "muted" {
+function priorityTone(priority: AgentTask["priority"]): "warning" | "primary" | "muted" {
   if (priority === "high") return "warning";
   if (priority === "medium") return "primary";
   return "muted";

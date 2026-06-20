@@ -10,6 +10,10 @@ import {
 } from "lucide-react";
 
 import { MobileShell } from "@/components/MobileShell";
+import { AiResultActions } from "@/components/AiResultActions";
+import { AsyncState } from "@/components/AsyncState";
+import { EmptyState } from "@/components/EmptyState";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, Tag, PrimaryButton } from "@/components/ui-primitives";
 import { generateProjectRecommendations } from "@/lib/ai";
 import {
@@ -18,6 +22,7 @@ import {
   type AgentState,
   type ProjectRecommendation,
 } from "@/lib/agent-store";
+import { formatProjectsMarkdown, workflowPageMeta } from "@/lib/workflow-ui";
 
 export const Route = createFileRoute("/projects")({
   head: () => ({ meta: [{ title: "项目实战" }] }),
@@ -62,14 +67,15 @@ function ProjectsPage() {
   if (!state.jobProfile || !state.abilityProfile || !state.gapReport) {
     return (
       <MobileShell title="项目实战" showBack>
-        <Card title="暂时无法生成项目推荐">
-          <p className="text-sm text-muted-foreground leading-6">
-            请先完成岗位分析、能力评估和 Gap 差距分析，系统会根据真实短板推荐项目。
-          </p>
-          <PrimaryButton onClick={() => navigate({ to: "/gap" })}>
-            返回差距分析
-          </PrimaryButton>
-        </Card>
+        <PageHeader {...workflowPageMeta.projects} backTo="/roadmap" />
+        <div className="mt-6">
+          <EmptyState
+            title="暂时无法生成项目推荐"
+            description="请先完成岗位分析、能力评估和 Gap 差距诊断。"
+            actionLabel="返回差距分析"
+            to="/gap"
+          />
+        </div>
       </MobileShell>
     );
   }
@@ -89,20 +95,24 @@ function ProjectsPage() {
       }
     >
       <div className="space-y-5">
+        <PageHeader {...workflowPageMeta.projects} backTo="/roadmap" />
         <Card
           title="个性化项目推荐"
           subtitle={`面向 ${state.targetJob || state.jobProfile.title}，对应当前能力差距`}
           icon={<Sparkles className="h-4 w-4" />}
         >
+          {state.projects.length ? (
+            <AiResultActions text={formatProjectsMarkdown(state.projects)} />
+          ) : null}
           {loading && (
-            <p className="text-sm text-muted-foreground">
-              正在生成项目推荐，AI 失败时将自动使用本地方案……
-            </p>
+            <AsyncState
+              status="loading"
+              title="正在生成项目推荐"
+              description="AI 请求失败时会自动使用本地兜底项目，保证演示链路可继续。"
+            />
           )}
           {!loading && state.projects.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              暂未生成项目，请刷新页面重试。
-            </p>
+            <p className="text-sm text-muted-foreground">暂未生成项目，请刷新页面重试。</p>
           )}
         </Card>
 
@@ -113,7 +123,8 @@ function ProjectsPage() {
         {state.roadmap && (
           <Card title="与学习路线的关系">
             <p className="text-sm text-foreground/85 leading-6">
-              这些项目用于把“{state.roadmap.goal30Days}”转化为可演示成果。建议按入门、进阶、面试亮点的顺序完成。
+              这些项目用于把“{state.roadmap.goal30Days}
+              ”转化为可演示成果。建议按入门、进阶、面试亮点的顺序完成。
             </p>
           </Card>
         )}
@@ -135,9 +146,7 @@ function ProjectCard({ project }: { project: ProjectRecommendation }) {
       <div className="p-5 space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-xs text-muted-foreground">
-              推荐项目 · {project.difficulty}
-            </div>
+            <div className="text-xs text-muted-foreground">推荐项目 · {project.difficulty}</div>
             <h2 className="font-semibold tracking-tight mt-1">{project.title}</h2>
           </div>
           <Tag tone={tone}>{project.difficulty}</Tag>

@@ -3,9 +3,13 @@ import { useEffect, useState } from "react";
 import { ArrowRight, BookOpen, Folder, Calendar, Trophy } from "lucide-react";
 
 import { MobileShell } from "@/components/MobileShell";
+import { AiResultActions } from "@/components/AiResultActions";
+import { EmptyState } from "@/components/EmptyState";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, PrimaryButton, ProgressBar } from "@/components/ui-primitives";
 import { generateRoadmap } from "@/lib/ai";
 import { loadState, saveState, type AgentState } from "@/lib/agent-store";
+import { formatRoadmapMarkdown, workflowPageMeta } from "@/lib/workflow-ui";
 
 export const Route = createFileRoute("/roadmap")({
   head: () => ({ meta: [{ title: "成长路线 — 职途 Agent" }] }),
@@ -41,14 +45,15 @@ function RoadmapPage() {
   if (!roadmap) {
     return (
       <MobileShell title="成长路线" showBack>
-        <Card title="暂时无法生成学习路线">
-          <p className="text-sm text-muted-foreground leading-6">
-            请先完成岗位分析、能力评估和差距分析，系统将基于关键差距生成个性化路线。
-          </p>
-          <PrimaryButton onClick={() => navigate({ to: "/gap" })}>
-            返回差距分析
-          </PrimaryButton>
-        </Card>
+        <PageHeader {...workflowPageMeta.roadmap} backTo="/gap" />
+        <div className="mt-6">
+          <EmptyState
+            title="请先生成 Gap 报告"
+            description="学习路线需要依据岗位要求和能力差距确定阶段目标。"
+            actionLabel="返回差距分析"
+            to="/gap"
+          />
+        </div>
       </MobileShell>
     );
   }
@@ -67,20 +72,21 @@ function RoadmapPage() {
       }
     >
       <div className="space-y-5">
+        <PageHeader {...workflowPageMeta.roadmap} backTo="/gap" />
         <Card>
           <div className="flex items-center justify-between mb-2">
             <div>
               <div className="text-xs text-muted-foreground">个性化成长目标</div>
               <div className="text-lg font-semibold">{roadmap.title}</div>
             </div>
-            <div className="text-2xl font-semibold text-primary tabular-nums">
-              0<span className="text-sm text-muted-foreground">/90</span>
-            </div>
+            <AiResultActions text={formatRoadmapMarkdown(roadmap)} />
           </div>
-          <ProgressBar value={0} max={90} />
           <p className="text-sm text-muted-foreground leading-6 mt-3">
             30 天目标：{roadmap.goal30Days}
           </p>
+          <div className="rounded-xl bg-primary-soft/55 p-3 text-xs leading-5 text-muted-foreground">
+            学习路线的实际完成进度将在任务中心记录，本页只展示规划内容。
+          </div>
         </Card>
 
         {roadmap.phases.map((phase, index) => {
@@ -107,9 +113,7 @@ function RoadmapPage() {
                   </div>
                   <div className="font-semibold">{phase.title}</div>
                 </div>
-                <div className="text-2xl font-semibold tabular-nums">
-                  {phase.days}天
-                </div>
+                <div className="text-2xl font-semibold tabular-nums">{phase.days}天</div>
               </div>
 
               <ul className="p-4 space-y-2">
@@ -122,12 +126,8 @@ function RoadmapPage() {
                       <IconFor type={item.type} />
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[11px] text-muted-foreground">
-                        {item.type}任务
-                      </div>
-                      <div className="text-sm text-foreground leading-snug">
-                        {item.text}
-                      </div>
+                      <div className="text-[11px] text-muted-foreground">{item.type}任务</div>
+                      <div className="text-sm text-foreground leading-snug">{item.text}</div>
                     </div>
                   </li>
                 ))}
@@ -148,10 +148,7 @@ function RoadmapPage() {
         <Card title="路线验收里程碑" icon={<Trophy className="h-4 w-4" />}>
           <div className="grid grid-cols-3 gap-2">
             {roadmap.phases.map((phase) => (
-              <div
-                key={phase.days}
-                className="p-3 rounded-xl text-center bg-muted/60"
-              >
+              <div key={phase.days} className="p-3 rounded-xl text-center bg-muted/60">
                 <div className="text-2xl grayscale opacity-50">🏅</div>
                 <div className="text-[11px] mt-1">{phase.days} 天验收</div>
               </div>

@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -77,18 +78,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Career Compass AI guides students to their dream jobs by analyzing career paths and identifying skill gaps." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Career Compass AI guides students to their dream jobs by analyzing career paths and identifying skill gaps." },
+      { title: "AI Career Agent｜AI 职业成长助手" },
+      {
+        name: "description",
+        content:
+          "面向大学生、应届生和转行求职者的 AI 求职准备 Workflow，帮助用户完成岗位分析、能力评估、差距诊断、学习路线、项目推荐、简历优化、模拟面试和任务执行。",
+      },
+      { name: "author", content: "AI Career Agent" },
+      { property: "og:title", content: "AI Career Agent｜AI 职业成长助手" },
+      {
+        property: "og:description",
+        content: "从岗位分析到任务执行的一站式 AI 求职准备 Workflow MVP。",
+      },
       { property: "og:type", content: "website" },
+      { property: "og:locale", content: "zh_CN" },
+      { property: "og:site_name", content: "AI Career Agent" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Lovable App" },
-      { name: "twitter:description", content: "Career Compass AI guides students to their dream jobs by analyzing career paths and identifying skill gaps." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/402c7347-0b28-44f1-8804-e6692eb23008/id-preview-75f68c0a--9cc2a166-b858-4b0a-aadb-3fe9a9ed4736.lovable.app-1780728678623.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/402c7347-0b28-44f1-8804-e6692eb23008/id-preview-75f68c0a--9cc2a166-b858-4b0a-aadb-3fe9a9ed4736.lovable.app-1780728678623.png" },
+      { name: "twitter:title", content: "AI Career Agent｜AI 职业成长助手" },
+      {
+        name: "twitter:description",
+        content: "从岗位分析到任务执行的一站式 AI 求职准备 Workflow MVP。",
+      },
     ],
     links: [
       {
@@ -105,7 +115,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="zh-CN">
       <head>
         <HeadContent />
       </head>
@@ -124,6 +134,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <Toaster position="top-center" richColors />
     </QueryClientProvider>
   );
 }

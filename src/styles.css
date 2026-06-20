@@ -60,20 +60,24 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-primary-soft: var(--primary-soft);
+  --color-app: var(--app);
   --color-success: var(--success);
   --color-warning: var(--warning);
-  --font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+  --font-sans:
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, BlinkMacSystemFont,
+    "Inter", system-ui, sans-serif;
 }
 
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
+  --app: oklch(0.985 0.004 255);
   --foreground: oklch(0.18 0.02 264);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.18 0.02 264);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0.02 264);
-  --primary: oklch(0.58 0.20 258);
+  --primary: oklch(0.58 0.2 258);
   --primary-foreground: oklch(0.99 0 0);
   --primary-soft: oklch(0.96 0.03 258);
   --secondary: oklch(0.97 0.005 260);
@@ -86,7 +90,7 @@
   --destructive-foreground: oklch(0.984 0.003 247.858);
   --border: oklch(0.93 0.008 260);
   --input: oklch(0.93 0.008 260);
-  --ring: oklch(0.58 0.20 258);
+  --ring: oklch(0.58 0.2 258);
   --success: oklch(0.68 0.16 160);
   --warning: oklch(0.78 0.15 75);
   --chart-1: oklch(0.646 0.222 41.116);
@@ -106,6 +110,7 @@
 
 .dark {
   --background: oklch(0.129 0.042 264.695);
+  --app: oklch(0.115 0.035 264);
   --foreground: oklch(0.984 0.003 247.858);
   --card: oklch(0.208 0.042 265.755);
   --card-foreground: oklch(0.984 0.003 247.858);
@@ -147,5 +152,283 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    min-width: 320px;
+    min-height: 100vh;
+    text-rendering: optimizeLegibility;
+  }
+
+  :focus-visible {
+    outline: 2px solid color-mix(in oklch, var(--ring) 75%, transparent);
+    outline-offset: 3px;
+  }
+
+  button,
+  input,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .surface-card {
+    border: 1px solid color-mix(in oklch, var(--border) 88%, transparent);
+    border-radius: 1rem;
+    background: color-mix(in oklch, var(--card) 96%, transparent);
+    box-shadow:
+      0 1px 2px oklch(0.18 0.02 264 / 4%),
+      0 10px 30px oklch(0.18 0.02 264 / 3%);
+    transition:
+      transform 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease;
+  }
+
+  .surface-card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in oklch, var(--primary) 20%, var(--border));
+    box-shadow:
+      0 2px 4px oklch(0.18 0.02 264 / 4%),
+      0 18px 40px oklch(0.18 0.02 264 / 6%);
+  }
+
+  .pressable {
+    transition:
+      transform 160ms ease,
+      color 160ms ease,
+      background-color 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      opacity 160ms ease;
+  }
+
+  .pressable:hover {
+    transform: translateY(-1px);
+  }
+
+  .pressable:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  .motion-page > * {
+    animation: rise-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .motion-page > *:nth-child(2) {
+    animation-delay: 60ms;
+  }
+
+  .motion-page > *:nth-child(3) {
+    animation-delay: 110ms;
+  }
+
+  .motion-page > *:nth-child(4) {
+    animation-delay: 160ms;
+  }
+
+  .motion-page > *:nth-child(n + 5) {
+    animation-delay: 210ms;
+  }
+
+  .metric-card {
+    animation: metric-in 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .metric-card:nth-child(2) {
+    animation-delay: 55ms;
+  }
+
+  .metric-card:nth-child(3) {
+    animation-delay: 110ms;
+  }
+
+  .metric-card:nth-child(4) {
+    animation-delay: 165ms;
+  }
+
+  .progress-fill {
+    transform-origin: left center;
+    animation: progress-grow 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+    background: color-mix(in oklch, var(--muted) 88%, var(--background));
+  }
+
+  .skeleton-shimmer::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    transform: translateX(-110%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklch, var(--background) 82%, transparent),
+      transparent
+    );
+    animation: shimmer 1.45s ease-in-out infinite;
+  }
+
+  .workflow-step-icon {
+    transition:
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      color 180ms ease,
+      background-color 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease;
+  }
+
+  .workflow-step:hover .workflow-step-icon {
+    transform: translateY(-2px);
+  }
+
+  .workflow-step.is-active .workflow-step-icon {
+    transform: scale(1.06);
+    border-color: color-mix(in oklch, var(--primary) 45%, var(--border));
+    background: var(--primary);
+    color: var(--primary-foreground);
+    box-shadow: 0 8px 24px oklch(0.58 0.2 258 / 18%);
+    animation: step-pop 360ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .workflow-step.is-complete .workflow-step-icon {
+    border-color: color-mix(in oklch, var(--success) 35%, var(--border));
+    background: color-mix(in oklch, var(--success) 12%, var(--background));
+    color: color-mix(in oklch, var(--success) 88%, var(--foreground));
+  }
+
+  .workflow-connector {
+    transform-origin: left center;
+    transition:
+      transform 260ms ease,
+      opacity 260ms ease;
+  }
+
+  .workflow-connector.is-complete {
+    transform: scaleX(1.04);
+    opacity: 1;
+  }
+
+  .nav-item,
+  .mobile-nav-item {
+    transition:
+      transform 160ms ease,
+      color 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .nav-item:hover {
+    transform: translateX(2px);
+  }
+
+  .mobile-nav-item:active {
+    transform: scale(0.94);
+  }
+
+  .mobile-nav-item.is-active svg {
+    animation: nav-pop 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .product-preview {
+    animation: preview-float 5s ease-in-out infinite;
+  }
+
+  .hero-grid {
+    background-image:
+      linear-gradient(to right, oklch(0.58 0.2 258 / 7%) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(0.58 0.2 258 / 7%) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: linear-gradient(to bottom, black, transparent 85%);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes metric-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes progress-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(110%);
+  }
+}
+
+@keyframes step-pop {
+  0% {
+    transform: scale(0.9);
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes nav-pop {
+  0% {
+    transform: scale(0.85);
+  }
+  70% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes preview-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .surface-card:hover,
+  .pressable:hover,
+  .pressable:active,
+  .nav-item:hover,
+  .workflow-step:hover .workflow-step-icon {
+    transform: none !important;
   }
 }
