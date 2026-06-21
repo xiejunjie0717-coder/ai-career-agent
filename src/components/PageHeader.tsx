@@ -36,7 +36,7 @@ export function PageHeader({
           className="inline-flex items-center gap-1 text-muted-foreground transition hover:text-primary"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          返回 {backTo === "/dashboard" ? "Dashboard" : "上一步"}
+          返回 {backTo === "/dashboard" ? "成长工作台" : "上一步"}
         </Link>
       </div>
       <div>
@@ -44,7 +44,7 @@ export function PageHeader({
         <p className="mt-2 max-w-3xl text-sm leading-7 text-muted-foreground">{description}</p>
       </div>
       {nextHint ? (
-        <div className="inline-flex items-center gap-2 rounded-md border-l-2 border-primary bg-primary-soft/50 px-3 py-2 text-xs text-muted-foreground">
+        <div className="inline-flex items-center gap-2 border-l-2 border-primary bg-primary-soft/50 px-3 py-2 text-xs text-muted-foreground">
           <ArrowRight className="h-3.5 w-3.5 text-primary" />
           下一步：{nextHint}
         </div>

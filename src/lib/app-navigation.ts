@@ -30,7 +30,7 @@ export type NavigationItem = {
 
 export const primaryNavigation: NavigationItem[] = [
   { to: "/", label: "产品首页", icon: "home" },
-  { to: "/dashboard", label: "Dashboard", icon: "dashboard" },
+  { to: "/dashboard", label: "成长工作台", icon: "dashboard" },
   { to: "/tasks", label: "任务中心", icon: "tasks" },
   { to: "/profile", label: "成长档案", icon: "profile" },
 ];

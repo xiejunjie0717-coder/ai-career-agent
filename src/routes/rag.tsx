@@ -12,7 +12,7 @@ import { SectionCard } from "@/components/SectionCard";
 import { askKnowledge } from "@/lib/rag";
 
 export const Route = createFileRoute("/rag")({
-  head: () => ({ meta: [{ title: "PDF 全文问答原型｜AI Career Agent" }] }),
+  head: () => ({ meta: [{ title: "PDF 全文问答原型｜Pathwise Career" }] }),
   component: RAGPage,
 });
 

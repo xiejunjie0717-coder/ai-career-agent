@@ -25,7 +25,7 @@ function NotFoundComponent() {
         <div className="mt-6">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="pathwise-button inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             Go home
           </Link>
@@ -57,13 +57,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="pathwise-button inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             Try again
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            className="pathwise-button inline-flex items-center justify-center rounded-full border border-input bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
           >
             Go home
           </a>
@@ -78,26 +78,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "AI Career Agent｜AI 职业成长助手" },
+      { title: "Pathwise Career｜让求职有方向，让成长有路线" },
       {
         name: "description",
         content:
-          "面向大学生、应届生和转行求职者的 AI 求职准备 Workflow，帮助用户完成岗位分析、能力评估、差距诊断、学习路线、项目推荐、简历优化、模拟面试和任务执行。",
+          "Pathwise Career 帮助大学生和年轻求职者读懂岗位、发现差距，并把项目、简历与面试准备整理成清晰可执行的成长路线。",
       },
-      { name: "author", content: "AI Career Agent" },
-      { property: "og:title", content: "AI Career Agent｜AI 职业成长助手" },
+      { name: "author", content: "Pathwise Career" },
+      { property: "og:title", content: "Pathwise Career｜让求职有方向，让成长有路线" },
       {
         property: "og:description",
-        content: "从岗位分析到任务执行的一站式 AI 求职准备 Workflow MVP。",
+        content: "Find direction in your job search · Build a path for your growth",
       },
       { property: "og:type", content: "website" },
       { property: "og:locale", content: "zh_CN" },
-      { property: "og:site_name", content: "AI Career Agent" },
+      { property: "og:site_name", content: "Pathwise Career" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "AI Career Agent｜AI 职业成长助手" },
+      { name: "twitter:title", content: "Pathwise Career｜让求职有方向，让成长有路线" },
       {
         name: "twitter:description",
-        content: "从岗位分析到任务执行的一站式 AI 求职准备 Workflow MVP。",
+        content: "Find direction in your job search · Build a path for your growth",
       },
     ],
     links: [

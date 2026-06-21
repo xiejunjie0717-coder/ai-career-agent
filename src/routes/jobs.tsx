@@ -10,7 +10,7 @@ import { SectionCard } from "@/components/SectionCard";
 import { searchJobsServer } from "@/lib/api/search.functions";
 
 export const Route = createFileRoute("/jobs")({
-  head: () => ({ meta: [{ title: "岗位搜索｜AI Career Agent" }] }),
+  head: () => ({ meta: [{ title: "岗位搜索｜Pathwise Career" }] }),
   component: JobsPage,
 });
 

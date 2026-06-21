@@ -12,7 +12,7 @@ import { analyzeAbilityProfile, generateGapReport } from "@/lib/ai";
 import { workflowPageMeta } from "@/lib/workflow-ui";
 
 export const Route = createFileRoute("/assessment")({
-  head: () => ({ meta: [{ title: "能力评估 — 职途 Agent" }] }),
+  head: () => ({ meta: [{ title: "能力评估｜Pathwise Career" }] }),
   component: AssessmentPage,
 });
 
@@ -135,7 +135,7 @@ function AssessmentPage() {
       <div className="space-y-6">
         <PageHeader {...workflowPageMeta.assessment} backTo="/analysis" />
 
-        <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid gap-8 xl:grid-cols-[1.08fr_0.92fr]">
           <SectionCard
             title="个人能力输入"
             description="请按真实情况填写，系统不会自动补充不存在的经历。"
@@ -156,7 +156,7 @@ function AssessmentPage() {
                       <button
                         key={s}
                         onClick={() => toggle(s)}
-                        className={`h-10 px-2 rounded-xl border text-sm font-medium flex items-center justify-center gap-1 transition ${
+                        className={`h-10 rounded-full border px-3 text-sm font-medium flex items-center justify-center gap-1 transition ${
                           active
                             ? "border-primary bg-primary-soft text-accent-foreground"
                             : "border-border bg-card text-foreground"
@@ -176,7 +176,7 @@ function AssessmentPage() {
                   onChange={(e) => setStrengths(e.target.value)}
                   rows={4}
                   placeholder="例如：逻辑清晰、有 B 端实习经验、能独立完成产品方案……"
-                  className="w-full px-4 py-3 rounded-xl border border-input bg-background text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-ring/40 resize-none"
+                  className="w-full rounded-md border border-input bg-background px-4 py-3 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-ring/40 resize-none"
                 />
               </Section>
 
@@ -186,28 +186,29 @@ function AssessmentPage() {
                   onChange={(e) => setWeaknesses(e.target.value)}
                   rows={4}
                   placeholder="例如：数据分析较弱、缺少完整项目交付、面试表达不够结构化……"
-                  className="w-full px-4 py-3 rounded-xl border border-input bg-background text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-ring/40 resize-none"
+                  className="w-full rounded-md border border-input bg-background px-4 py-3 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-ring/40 resize-none"
                 />
               </Section>
             </div>
           </SectionCard>
 
-          <SectionCard
-            title="评估说明"
-            description="提交后会生成 AbilityProfile，并自动计算 Gap 报告。"
-          >
-            <div className="space-y-3 text-sm leading-6 text-muted-foreground">
-              <p>评估会结合岗位画像，而不是使用固定评分模板。</p>
-              <p>重点输出匹配度、可证明优势、能力差距和下一步建议。</p>
-              <p>生成成功后将自动进入差距诊断页面。</p>
+          <SectionCard className="assessment-portrait-panel">
+            <AbilityPortrait />
+            <div className="mt-8 border-t border-border pt-5">
+              <h3 className="font-semibold">能力画像如何形成</h3>
+              <div className="mt-3 space-y-3 text-sm leading-6 text-muted-foreground">
+                <p>已具备能力、项目证据和待补差距会连接到同一份个人画像。</p>
+                <p>评估结合岗位画像，不使用固定评分模板，也不会补写不存在的经历。</p>
+                <p>生成成功后将进入差距诊断，明确最值得优先解决的一项。</p>
+              </div>
             </div>
             {loading ? (
-              <div className="mt-5 rounded-2xl bg-primary-soft/60 p-4 text-sm text-primary">
-                正在结合岗位要求分析个人能力，请稍候……
+              <div className="mt-5 border-l-2 border-primary bg-primary-soft/45 p-4 text-sm text-primary">
+                Pathwise Career 正在结合岗位要求分析能力证据……
               </div>
             ) : null}
             {result ? (
-              <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              <div className="mt-5 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                 {result}
               </div>
             ) : null}
@@ -215,6 +216,43 @@ function AssessmentPage() {
         </div>
       </div>
     </MobileShell>
+  );
+}
+
+function AbilityPortrait() {
+  return (
+    <div className="ability-portrait" aria-label="个人能力画像示意">
+      <svg viewBox="0 0 360 300" role="img" aria-label="人物与能力证据、优势和待补差距的关系">
+        <path
+          className="ability-portrait__person"
+          d="M177 73c-19 0-34 15-34 34 0 13 7 24 17 30-26 8-45 32-45 61v28m124 0v-28c0-29-19-53-45-61 10-6 17-17 17-30 0-19-15-34-34-34Zm-62 153h124"
+        />
+        <path className="ability-portrait__link" d="M143 116 72 82H28" />
+        <path className="ability-portrait__link" d="M120 178 65 178H24" />
+        <path className="ability-portrait__link" d="M214 118 282 86h48" />
+        <path className="ability-portrait__link is-gap" d="M238 180h61l31 31" />
+        <rect x="20" y="62" width="74" height="38" rx="4" />
+        <rect x="16" y="159" width="82" height="38" rx="4" />
+        <rect x="270" y="65" width="76" height="38" rx="4" />
+        <rect className="is-gap" x="273" y="197" width="73" height="38" rx="4" />
+        <text x="57" y="85" textAnchor="middle">
+          当前优势
+        </text>
+        <text x="57" y="182" textAnchor="middle">
+          已具备能力
+        </text>
+        <text x="308" y="88" textAnchor="middle">
+          项目证据
+        </text>
+        <text className="is-gap" x="309" y="220" textAnchor="middle">
+          需要补齐
+        </text>
+      </svg>
+      <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+        <span>输入真实经历</span>
+        <span className="text-primary">形成稳定能力轮廓</span>
+      </div>
+    </div>
   );
 }
 

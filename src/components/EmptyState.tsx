@@ -34,7 +34,7 @@ export function EmptyState({
       <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">{description}</p>
       <Link
         to={to}
-        className="pressable mt-5 inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground"
+        className="pathwise-button mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
       >
         {actionLabel}
         <ArrowRight className="h-4 w-4" />

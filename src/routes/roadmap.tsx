@@ -12,7 +12,7 @@ import { loadState, saveState, type AgentState } from "@/lib/agent-store";
 import { formatRoadmapMarkdown, workflowPageMeta } from "@/lib/workflow-ui";
 
 export const Route = createFileRoute("/roadmap")({
-  head: () => ({ meta: [{ title: "成长路线 — 职途 Agent" }] }),
+  head: () => ({ meta: [{ title: "成长路线｜Pathwise Career" }] }),
   component: RoadmapPage,
 });
 

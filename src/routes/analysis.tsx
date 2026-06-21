@@ -23,7 +23,7 @@ import { loadState, saveState, type AgentState } from "@/lib/agent-store";
 import { workflowPageMeta } from "@/lib/workflow-ui";
 
 export const Route = createFileRoute("/analysis")({
-  head: () => ({ meta: [{ title: "岗位分析｜AI Career Agent" }] }),
+  head: () => ({ meta: [{ title: "岗位分析｜Pathwise Career" }] }),
   component: AnalysisPage,
 });
 

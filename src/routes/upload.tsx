@@ -10,7 +10,7 @@ import { SectionCard } from "@/components/SectionCard";
 import { loadState, saveState } from "@/lib/agent-store";
 
 export const Route = createFileRoute("/upload")({
-  head: () => ({ meta: [{ title: "上传岗位 JD｜AI Career Agent" }] }),
+  head: () => ({ meta: [{ title: "上传岗位 JD｜Pathwise Career" }] }),
   component: UploadPage,
 });
 
